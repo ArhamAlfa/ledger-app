@@ -1261,6 +1261,153 @@ async function githubWrite(repo, path, text, sha, message) {
 }
 
 
+async function githubList(repo, path) {
+    const url = "https://api.github.com/repos/" + state.settings.owner + "/" + repo +
+                "/contents/" + path + "?t=" + Date.now();
+
+    const response = await fetch(url, { headers: githubHeaders(), cache: "no-store" });
+
+    if (response.status === 404) {
+        return [];
+    }
+
+    if (response.ok === false) {
+        return [];
+    }
+
+    const payload = await response.json();
+
+    if (Array.isArray(payload) === false) {
+        return [];
+    }
+
+    return payload;
+}
+
+async function githubDelete(repo, path, sha, message) {
+    const url = "https://api.github.com/repos/" + state.settings.owner + "/" + repo +
+                "/contents/" + path;
+
+    const body = {
+        message: message,
+        sha: sha
+    };
+
+    const response = await fetch(url, {
+        method: "DELETE",
+        headers: githubHeaders(),
+        body: JSON.stringify(body)
+    });
+
+    return response.ok;
+}
+
+
+/* ===============================================================
+   5b.  Inbox — one file per entry, written by the phone widget
+   =============================================================== */
+
+function rowFromInboxText(text) {
+    const trimmed = text.trim();
+
+    if (trimmed.length === 0) {
+        return null;
+    }
+
+    const firstLine = trimmed.split("\n")[0];
+
+    if (firstLine.startsWith("timestamp,") === true) {
+        return null;
+    }
+
+    const fields = parseCsvLine(firstLine);
+    const row = {};
+
+    for (let c = 0; c < CSV_COLUMNS.length; c++) {
+        let value = fields[c];
+
+        if (value === undefined) {
+            value = "";
+        }
+
+        row[CSV_COLUMNS[c]] = value.trim();
+    }
+
+    if (row.timestamp === "" || row.type === "" || row.amount === "") {
+        return null;
+    }
+
+    return row;
+}
+
+function sortRowsByTimestamp() {
+    state.rows.sort(function (left, right) {
+        if (left.timestamp < right.timestamp) { return -1; }
+        if (left.timestamp > right.timestamp) { return 1; }
+        return 0;
+    });
+}
+
+async function drainInbox() {
+    const entries = await githubList(state.settings.repo, "inbox");
+
+    if (entries.length === 0) {
+        return false;
+    }
+
+    const collected = [];
+
+    for (let i = 0; i < entries.length; i++) {
+        const entry = entries[i];
+
+        if (entry.type !== "file") {
+            continue;
+        }
+
+        if (entry.name.endsWith(".csv") === false) {
+            continue;
+        }
+
+        const file = await githubRead(state.settings.repo, entry.path);
+
+        if (file.text === null) {
+            continue;
+        }
+
+        const row = rowFromInboxText(file.text);
+
+        if (row === null) {
+            continue;
+        }
+
+        collected.push({ row: row, path: entry.path, sha: entry.sha });
+    }
+
+    if (collected.length === 0) {
+        return false;
+    }
+
+    for (let i = 0; i < collected.length; i++) {
+        state.rows.push(collected[i].row);
+    }
+
+    sortRowsByTimestamp();
+
+    const text = serialiseCsv(state.rows);
+    const written = await pushLog(text, "drain " + collected.length + " from inbox");
+
+    if (written === false) {
+        return false;
+    }
+
+    for (let i = 0; i < collected.length; i++) {
+        await githubDelete(state.settings.repo, collected[i].path, collected[i].sha, "clear inbox entry");
+    }
+
+    return true;
+}
+
+
 /* ===============================================================
    6.  Config lookups
    =============================================================== */
@@ -2480,6 +2627,12 @@ async function loadEverything() {
         await syncUp();
     } else {
         renderSyncState("ok", "synced");
+    }
+
+    const drained = await drainInbox();
+
+    if (drained === true) {
+        renderAll();
     }
 }
 
