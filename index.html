@@ -896,7 +896,8 @@ const CSV_COLUMNS = [
     "to_wallet",
     "merchant",
     "item",
-    "note"
+    "note",
+    "id"
 ];
 
 const LOG_PATH    = "log.csv";
@@ -1348,6 +1349,55 @@ function rowFromInboxText(text) {
     return row;
 }
 
+function collectExistingIds() {
+    const ids = {};
+
+    for (let i = 0; i < state.rows.length; i++) {
+        const id = state.rows[i].id;
+
+        if (id !== undefined && id !== "") {
+            ids[id] = true;
+        }
+    }
+
+    return ids;
+}
+
+/* Appends only rows the target does not already carry.
+   A row with a blank id is always appended — it has no identity to compare. */
+function appendRowsWithoutDuplicates(target, rows) {
+    const seen = {};
+
+    for (let i = 0; i < target.length; i++) {
+        const id = target[i].id;
+
+        if (id !== undefined && id !== "") {
+            seen[id] = true;
+        }
+    }
+
+    let added = 0;
+
+    for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const id = row.id;
+
+        if (id !== undefined && id !== "" && seen[id] === true) {
+            continue;
+        }
+
+        target.push(row);
+
+        if (id !== undefined && id !== "") {
+            seen[id] = true;
+        }
+
+        added += 1;
+    }
+
+    return added;
+}
+
 function sortRowsByTimestamp() {
     state.rows.sort(function (left, right) {
         if (left.timestamp < right.timestamp) { return -1; }
@@ -1363,6 +1413,7 @@ async function drainInbox() {
         return false;
     }
 
+    const knownIds = collectExistingIds();
     const collected = [];
 
     for (let i = 0; i < entries.length; i++) {
@@ -1373,6 +1424,15 @@ async function drainInbox() {
         }
 
         if (entry.name.endsWith(".csv") === false) {
+            continue;
+        }
+
+        /* The filename is the entry's identity. It is what makes a second
+           drain of the same file a no-op instead of a duplicate. */
+        const entryId = entry.name.slice(0, entry.name.length - 4);
+
+        if (knownIds[entryId] === true) {
+            await githubDelete(state.settings.repo, entry.path, entry.sha, "clear already-merged inbox entry");
             continue;
         }
 
@@ -1388,6 +1448,7 @@ async function drainInbox() {
             continue;
         }
 
+        row.id = entryId;
         collected.push({ row: row, path: entry.path, sha: entry.sha });
     }
 
@@ -1395,22 +1456,37 @@ async function drainInbox() {
         return false;
     }
 
+    const incoming = [];
+
     for (let i = 0; i < collected.length; i++) {
-        state.rows.push(collected[i].row);
+        incoming.push(collected[i].row);
+    }
+
+    const added = appendRowsWithoutDuplicates(state.rows, incoming);
+
+    if (added === 0) {
+        return false;
     }
 
     sortRowsByTimestamp();
 
-    const text = serialiseCsv(state.rows);
-    const written = await pushLog(text, "drain " + collected.length + " from inbox");
-
-    if (written === false) {
-        return false;
+    /* Hold the rows in the offline queue before releasing the inbox files.
+       If the log write fails from here on, the queue retries it; the entries
+       cannot be lost even though their source files are gone. */
+    for (let i = 0; i < incoming.length; i++) {
+        state.pending.push(incoming[i]);
     }
 
+    savePending(state.pending);
+
+    /* Claim the files first. A concurrent reload now finds an empty inbox
+       rather than merging the same rows a second time. */
     for (let i = 0; i < collected.length; i++) {
         await githubDelete(state.settings.repo, collected[i].path, collected[i].sha, "clear inbox entry");
     }
+
+    const text = serialiseCsv(state.rows);
+    await pushLog(text, "drain " + collected.length + " from inbox");
 
     return true;
 }
@@ -2084,6 +2160,7 @@ function buildRowFromForm(type) {
     const row = blankRow();
     row.timestamp = localTimestamp(new Date());
     row.type = type;
+    row.id = "d" + Date.now();
 
     const amount = readAmount("fAmount");
 
@@ -2254,14 +2331,19 @@ async function pushLog(text, message) {
 
         if (result.conflict === true) {
             const fresh = await githubRead(state.settings.repo, LOG_PATH);
-            const remoteRows = fresh.text === null ? [] : parseCsv(fresh.text);
+            let remoteRows = [];
 
-            for (let i = 0; i < state.pending.length; i++) {
-                remoteRows.push(state.pending[i]);
+            if (fresh.text !== null) {
+                remoteRows = parseCsv(fresh.text);
             }
+
+            /* The other device may already have written some of what is queued
+               here — merge on id so those do not land twice. */
+            appendRowsWithoutDuplicates(remoteRows, state.pending);
 
             state.rows = remoteRows;
             state.logSha = fresh.sha;
+            sortRowsByTimestamp();
 
             const merged = serialiseCsv(state.rows);
             result = await githubWrite(state.settings.repo, LOG_PATH, merged, state.logSha, message + " (merged)");
