@@ -1,0 +1,2282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F4F5F0">
+<title>Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ---------------------------------------------------------------
+   Design tokens
+   --------------------------------------------------------------- */
+:root {
+    --paper:        #F4F5F0;
+    --paper-sunk:   #EDEEE8;
+    --ink:          #111812;
+    --ink-muted:    #556056;
+    --ink-faint:    #8B948B;
+    --pine:         #1E4D2B;
+    --pine-deep:    #14351D;
+    --mint:         #EBF3EA;
+    --hairline:     #D0E2CE;
+    --hairline-dim: #DFE0D9;
+    --clay:         #8A3324;
+    --clay-tint:    #F5E9E6;
+
+    --serif: "Newsreader", Georgia, serif;
+    --mono:  "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+    --gutter: 2.5rem;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ---------------------------------------------------------------
+   Shared primitives
+   --------------------------------------------------------------- */
+.label {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+}
+
+.num {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+}
+
+.rule {
+    height: 1px;
+    background: var(--hairline);
+    border: 0;
+    margin: 0;
+}
+
+button, input, select {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+}
+
+/* ---------------------------------------------------------------
+   Shell + masthead
+   --------------------------------------------------------------- */
+.shell {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 var(--gutter);
+}
+
+.masthead {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 2.25rem 0 1.125rem 0;
+    border-bottom: 1px solid var(--ink);
+}
+
+.mark {
+    font-family: var(--serif);
+    font-size: 1.5rem;
+    font-weight: 400;
+    letter-spacing: -0.015em;
+    line-height: 1;
+}
+
+.mark em {
+    font-style: italic;
+    color: var(--pine);
+}
+
+.masthead-right {
+    display: flex;
+    align-items: baseline;
+    gap: 1.25rem;
+}
+
+.syncdot {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.syncdot i {
+    width: 6px;
+    height: 6px;
+    background: var(--pine);
+    display: inline-block;
+    flex: none;
+}
+
+.syncdot[data-state="dirty"] i { background: var(--clay); }
+.syncdot[data-state="busy"]  i { background: var(--ink-faint); }
+
+.linkbtn {
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    color: var(--ink-muted);
+    border-bottom: 1px solid var(--hairline);
+    font-size: 0.6875rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.linkbtn:hover { color: var(--pine); border-bottom-color: var(--pine); }
+
+/* ---------------------------------------------------------------
+   Headline strip — the surveillance number
+   --------------------------------------------------------------- */
+.headline {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) 1px minmax(0, 1fr) 1px minmax(0, 1fr);
+    align-items: stretch;
+    border-bottom: 1px solid var(--hairline);
+}
+
+.headline > .vr { background: var(--hairline); }
+
+.hcell {
+    padding: 2rem 0 2rem 0;
+}
+
+.hcell + .hcell,
+.vr + .hcell {
+    padding-left: 2rem;
+}
+
+.hcell .label { display: block; margin-bottom: 0.875rem; }
+
+.bignum {
+    font-family: var(--serif);
+    font-size: clamp(2.75rem, 7vw, 4.25rem);
+    line-height: 0.92;
+    letter-spacing: -0.03em;
+    font-weight: 350;
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+}
+
+.bignum .cur {
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--ink-muted);
+    transform: translateY(-0.35em);
+}
+
+.bignum.is-neg { color: var(--clay); }
+
+.midnum {
+    font-family: var(--serif);
+    font-size: clamp(1.75rem, 3.4vw, 2.35rem);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    font-weight: 350;
+}
+
+.subnote {
+    margin-top: 0.6rem;
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+    line-height: 1.5;
+}
+
+/* ---------------------------------------------------------------
+   Asymmetric body: 62 / 38
+   --------------------------------------------------------------- */
+.split {
+    display: grid;
+    grid-template-columns: minmax(0, 62fr) 1px minmax(0, 38fr);
+    align-items: start;
+}
+
+.split > .vr {
+    background: var(--hairline);
+    align-self: stretch;
+}
+
+.col-data { padding: 0 3rem 5rem 0; }
+.col-form { padding: 0 0 5rem 3rem; position: sticky; top: 0; }
+
+.sectionhead {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 2.25rem 0 0.75rem 0;
+}
+
+.sectionhead h2 {
+    font-family: var(--serif);
+    font-size: 1.25rem;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    margin: 0;
+}
+
+/* ---------------------------------------------------------------
+   Wallet ledger rows — flush, no cards
+   --------------------------------------------------------------- */
+.acct-band {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 1.25rem 0 0.5rem 0;
+    border-bottom: 1px solid var(--ink);
+}
+
+.acct-band .name {
+    font-family: var(--serif);
+    font-size: 1rem;
+    font-style: italic;
+    color: var(--pine);
+}
+
+.acct-band .total {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--ink-muted);
+}
+
+.wrow {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid var(--hairline-dim);
+}
+
+.wrow .wname {
+    font-size: 0.875rem;
+    letter-spacing: 0.01em;
+}
+
+.wrow .wbal {
+    font-size: 1rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+}
+
+.wrow .wbal.is-neg { color: var(--clay); }
+
+.wbar {
+    grid-column: 1 / -1;
+    height: 2px;
+    background: var(--hairline-dim);
+    position: relative;
+    margin-top: 0.15rem;
+}
+
+.wbar span {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: var(--pine);
+}
+
+.wbar span.is-neg { background: var(--clay); }
+
+/* ---------------------------------------------------------------
+   Transaction stream
+   --------------------------------------------------------------- */
+.txrow {
+    display: grid;
+    grid-template-columns: 4.25rem minmax(0, 1fr) auto;
+    gap: 1rem;
+    align-items: baseline;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--hairline-dim);
+}
+
+.txrow .when {
+    font-size: 0.6875rem;
+    color: var(--ink-faint);
+    letter-spacing: 0.03em;
+}
+
+.txrow .what { min-width: 0; }
+
+.txrow .merchant {
+    font-size: 0.875rem;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.txrow .meta {
+    font-size: 0.6875rem;
+    color: var(--ink-faint);
+    margin-top: 0.15rem;
+    display: block;
+}
+
+.txrow .amt {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.txrow .amt.is-in  { color: var(--pine); }
+.txrow .amt.is-mv  { color: var(--ink-faint); }
+
+.pill {
+    display: inline-block;
+    background: var(--mint);
+    color: var(--pine);
+    padding: 0.1rem 0.4rem;
+    font-size: 0.625rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-right: 0.4rem;
+}
+
+.txrow .kill {
+    background: none;
+    border: 0;
+    color: var(--ink-faint);
+    cursor: pointer;
+    padding: 0 0 0 0.5rem;
+    font-size: 0.75rem;
+    opacity: 0;
+    transition: opacity 0.12s;
+}
+
+.txrow:hover .kill { opacity: 1; }
+.txrow .kill:hover { color: var(--clay); }
+
+.empty {
+    padding: 2rem 0;
+    color: var(--ink-faint);
+    font-size: 0.8125rem;
+    line-height: 1.6;
+}
+
+/* ---------------------------------------------------------------
+   Form rail
+   --------------------------------------------------------------- */
+.tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--ink);
+    margin-top: 2.25rem;
+}
+
+.tab {
+    flex: 1;
+    background: none;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    padding: 0.7rem 0.2rem;
+    cursor: pointer;
+    font-size: 0.6875rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+}
+
+.tab[aria-selected="true"] {
+    color: var(--pine);
+    border-bottom-color: var(--pine);
+    font-weight: 600;
+}
+
+.field {
+    padding: 1rem 0 0.85rem 0;
+    border-bottom: 1px solid var(--hairline-dim);
+}
+
+.field > label {
+    display: block;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 0.4rem;
+}
+
+.field input,
+.field select {
+    width: 100%;
+    background: transparent;
+    border: 0;
+    outline: none;
+    padding: 0.15rem 0;
+    font-size: 0.9375rem;
+    letter-spacing: 0.005em;
+}
+
+.field select {
+    border-radius: 0;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, var(--ink-muted) 50%),
+                      linear-gradient(135deg, var(--ink-muted) 50%, transparent 50%);
+    background-position: right 4px center, right 0px center;
+    background-size: 4px 4px, 4px 4px;
+    background-repeat: no-repeat;
+    padding-right: 1rem;
+}
+
+.field input::placeholder { color: var(--ink-faint); }
+.field:focus-within { border-bottom-color: var(--pine); }
+
+.field.amount input {
+    font-family: var(--serif);
+    font-size: 2.25rem;
+    letter-spacing: -0.02em;
+    padding: 0;
+    line-height: 1.15;
+}
+
+.field.amount .cur-hint {
+    font-size: 0.6875rem;
+    letter-spacing: 0.09em;
+    color: var(--pine);
+}
+
+.field-pair {
+    display: grid;
+    grid-template-columns: 1fr 1px 1fr;
+    gap: 0;
+}
+
+.field-pair > .vr { background: var(--hairline-dim); }
+.field-pair > .field:last-child { padding-left: 1rem; }
+
+.submit {
+    width: 100%;
+    margin-top: 1.5rem;
+    padding: 0.95rem 1rem;
+    background: var(--pine);
+    color: #FFFFFF;
+    border: 0;
+    border-radius: 2px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.submit:hover  { background: var(--pine-deep); }
+.submit:disabled { background: var(--ink-faint); cursor: default; }
+
+.formnote {
+    margin-top: 0.85rem;
+    font-size: 0.6875rem;
+    line-height: 1.6;
+    color: var(--ink-faint);
+}
+
+.formnote.is-err { color: var(--clay); }
+
+/* ---------------------------------------------------------------
+   Setup + config panels
+   --------------------------------------------------------------- */
+.veil {
+    position: fixed;
+    inset: 0;
+    background: rgba(244, 245, 240, 0.97);
+    z-index: 40;
+    overflow-y: auto;
+    padding: 3rem 1.5rem 4rem 1.5rem;
+}
+
+.veil[hidden] { display: none; }
+
+.panel {
+    max-width: 520px;
+    margin: 0 auto;
+}
+
+.panel h1 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 2rem;
+    letter-spacing: -0.02em;
+    margin: 0 0 0.5rem 0;
+}
+
+.panel p {
+    font-size: 0.8125rem;
+    line-height: 1.7;
+    color: var(--ink-muted);
+    margin: 0 0 1.75rem 0;
+}
+
+.panel p code {
+    background: var(--mint);
+    color: var(--pine);
+    padding: 0.05rem 0.3rem;
+}
+
+.chiprow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.6rem;
+}
+
+.chip {
+    background: var(--mint);
+    color: var(--pine);
+    border: 1px solid var(--hairline);
+    border-radius: 2px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.6875rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.chip button {
+    background: none;
+    border: 0;
+    color: var(--pine);
+    cursor: pointer;
+    padding: 0;
+    opacity: 0.5;
+}
+
+.chip button:hover { opacity: 1; }
+
+/* ---------------------------------------------------------------
+   Responsive — phone puts the form first
+   --------------------------------------------------------------- */
+@media (max-width: 900px) {
+    :root { --gutter: 1.25rem; }
+
+    .headline {
+        grid-template-columns: 1fr 1px 1fr;
+        row-gap: 0;
+    }
+
+    .headline > .hcell:first-child { grid-column: 1 / -1; padding-bottom: 1.25rem; }
+    .headline > .vr:first-of-type  { display: none; }
+    .headline > .hcell:nth-of-type(2) {
+        padding-left: 0;
+        padding-top: 1.25rem;
+        border-top: 1px solid var(--hairline-dim);
+    }
+    .headline > .hcell:nth-of-type(3) {
+        padding-top: 1.25rem;
+        border-top: 1px solid var(--hairline-dim);
+    }
+
+    .split {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .split > .vr { display: none; }
+
+    .col-form {
+        order: 1;
+        position: static;
+        padding: 0 0 2.5rem 0;
+    }
+
+    .col-data {
+        order: 2;
+        padding: 0 0 4rem 0;
+        border-top: 1px solid var(--hairline);
+    }
+
+    .field.amount input { font-size: 2.75rem; }
+    .submit { padding: 1.1rem 1rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- =============================================================
+     Setup gate
+     ============================================================= -->
+<div class="veil" id="setupVeil" hidden>
+  <div class="panel">
+    <h1>Connect the ledger</h1>
+    <p>
+      This dashboard keeps nothing of its own. It reads and writes
+      <code>log.csv</code> and <code>config.json</code> in a private GitHub repo.
+      Paste a fine-grained token with <strong>Contents: read &amp; write</strong> on that repo.
+      It is stored only in this browser, and you do this once per device.
+    </p>
+
+    <div class="field">
+      <label for="setOwner">GitHub username</label>
+      <input id="setOwner" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="your-handle">
+    </div>
+
+    <div class="field">
+      <label for="setRepo">Private repo (holds log.csv)</label>
+      <input id="setRepo" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="ledger">
+    </div>
+
+    <div class="field">
+      <label for="setToken">Fine-grained token</label>
+      <input id="setToken" type="password" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="github_pat_...">
+    </div>
+
+    <div class="field">
+      <label for="setPublicRepo">Public repo for the widget — optional</label>
+      <input id="setPublicRepo" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="ledger-summary">
+    </div>
+
+    <button class="submit" id="setupSave">Connect</button>
+    <p class="formnote" id="setupNote"></p>
+  </div>
+</div>
+
+<!-- =============================================================
+     Wallet / account editor
+     ============================================================= -->
+<div class="veil" id="configVeil" hidden>
+  <div class="panel">
+    <h1>Accounts &amp; wallets</h1>
+    <p>Wallets are envelopes inside an account. They double as your categories &mdash; a purchase comes out of one.</p>
+
+    <div class="sectionhead"><h2>Add an account</h2></div>
+    <div class="field-pair">
+      <div class="field">
+        <label for="newAcctName">Name</label>
+        <input id="newAcctName" type="text" placeholder="Maybank">
+      </div>
+      <div class="vr"></div>
+      <div class="field">
+        <label for="newAcctCur">Currency</label>
+        <input id="newAcctCur" type="text" maxlength="3" placeholder="MYR" autocapitalize="characters">
+      </div>
+    </div>
+    <button class="submit" id="addAcctBtn">Add account</button>
+    <div class="chiprow" id="acctChips"></div>
+
+    <div class="sectionhead"><h2>Add a wallet</h2></div>
+    <div class="field-pair">
+      <div class="field">
+        <label for="newWalletName">Name</label>
+        <input id="newWalletName" type="text" placeholder="Gifts">
+      </div>
+      <div class="vr"></div>
+      <div class="field">
+        <label for="newWalletAcct">Inside account</label>
+        <select id="newWalletAcct"></select>
+      </div>
+    </div>
+    <button class="submit" id="addWalletBtn">Add wallet</button>
+    <div class="chiprow" id="walletChips"></div>
+
+    <div class="sectionhead"><h2>Period</h2></div>
+    <div class="field-pair">
+      <div class="field">
+        <label for="periodEnd">Runs until</label>
+        <input id="periodEnd" type="date">
+      </div>
+      <div class="vr"></div>
+      <div class="field">
+        <label for="periodAcct">Headline account</label>
+        <select id="periodAcct"></select>
+      </div>
+    </div>
+
+    <button class="submit" id="configDone" style="margin-top:2.5rem">Save &amp; close</button>
+    <p class="formnote" id="configNote"></p>
+  </div>
+</div>
+
+<!-- =============================================================
+     Main
+     ============================================================= -->
+<div class="shell" id="app" hidden>
+
+  <header class="masthead">
+    <div class="mark">Ledger<em>.</em></div>
+    <div class="masthead-right">
+      <span class="syncdot label" id="syncDot" data-state="ok"><i></i><span id="syncText">synced</span></span>
+      <button class="linkbtn" id="openConfig">Wallets</button>
+      <button class="linkbtn" id="reloadBtn">Reload</button>
+    </div>
+  </header>
+
+  <section class="headline">
+    <div class="hcell">
+      <span class="label">Left to spend &mdash; <span id="hlAcctName">&mdash;</span></span>
+      <div class="bignum num" id="hlAmount">0<span class="cur" id="hlCur">MYR</span></div>
+      <div class="subnote" id="hlNote">&mdash;</div>
+    </div>
+    <div class="vr"></div>
+    <div class="hcell">
+      <span class="label">Days remaining</span>
+      <div class="midnum num" id="hlDays">&mdash;</div>
+      <div class="subnote" id="hlPace">&mdash;</div>
+    </div>
+    <div class="vr"></div>
+    <div class="hcell">
+      <span class="label">Spent today</span>
+      <div class="midnum num" id="hlToday">&mdash;</div>
+      <div class="subnote" id="hlTodayNote">&mdash;</div>
+    </div>
+  </section>
+
+  <div class="split">
+
+    <div class="col-data">
+      <div class="sectionhead">
+        <h2>Wallets</h2>
+        <span class="label">Balance</span>
+      </div>
+      <div id="walletList"></div>
+
+      <div class="sectionhead">
+        <h2>Everything logged</h2>
+        <span class="label" id="txCount"></span>
+      </div>
+      <div id="txList"></div>
+    </div>
+
+    <div class="vr"></div>
+
+    <div class="col-form">
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" data-type="spend"    aria-selected="true">Spend</button>
+        <button class="tab" role="tab" data-type="income"   aria-selected="false">Income</button>
+        <button class="tab" role="tab" data-type="transfer" aria-selected="false">Top&nbsp;up</button>
+        <button class="tab" role="tab" data-type="move"     aria-selected="false">Move</button>
+      </div>
+
+      <form id="entryForm" autocomplete="off">
+        <div id="formFields"></div>
+        <button class="submit" type="submit" id="submitBtn">Log it</button>
+        <p class="formnote" id="formNote"></p>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<datalist id="merchantList"></datalist>
+
+<script>
+"use strict";
+
+/* ===============================================================
+   0.  Constants and state
+   =============================================================== */
+
+const CSV_COLUMNS = [
+    "timestamp",
+    "type",
+    "amount",
+    "currency",
+    "account",
+    "wallet",
+    "to_amount",
+    "to_currency",
+    "to_account",
+    "to_wallet",
+    "merchant",
+    "item",
+    "note"
+];
+
+const LOG_PATH    = "log.csv";
+const CONFIG_PATH = "config.json";
+
+const SETTINGS_KEY = "ledger.settings";
+const PENDING_KEY  = "ledger.pending";
+const DEFAULTS_KEY = "ledger.formDefaults";
+
+const state = {
+    settings:   null,
+    config:     null,
+    rows:       [],
+    logSha:     null,
+    configSha:  null,
+    pending:    [],
+    activeType: "spend",
+    busy:       false
+};
+
+
+/* ===============================================================
+   1.  Small helpers
+   =============================================================== */
+
+function byId(id) {
+    return document.getElementById(id);
+}
+
+function escapeHtml(text) {
+    if (text === null || text === undefined) {
+        return "";
+    }
+
+    let out = String(text);
+    out = out.replace(/&/g, "&amp;");
+    out = out.replace(/</g, "&lt;");
+    out = out.replace(/>/g, "&gt;");
+    out = out.replace(/"/g, "&quot;");
+    return out;
+}
+
+function decimalsFor(currency) {
+    if (currency === "IDR") { return 0; }
+    if (currency === "JPY") { return 0; }
+    if (currency === "VND") { return 0; }
+    if (currency === "KRW") { return 0; }
+    return 2;
+}
+
+function formatAmount(value, currency) {
+    const places = decimalsFor(currency);
+    const options = {
+        minimumFractionDigits: places,
+        maximumFractionDigits: places
+    };
+    return value.toLocaleString("en-US", options);
+}
+
+function slugify(text) {
+    let out = String(text).toLowerCase().trim();
+    out = out.replace(/[^a-z0-9]+/g, "-");
+    out = out.replace(/^-+|-+$/g, "");
+
+    if (out.length === 0) {
+        out = "item-" + Date.now();
+    }
+
+    return out;
+}
+
+function localTimestamp(date) {
+    const year   = date.getFullYear();
+    const month  = String(date.getMonth() + 1).padStart(2, "0");
+    const day    = String(date.getDate()).padStart(2, "0");
+    const hour   = String(date.getHours()).padStart(2, "0");
+    const minute = String(date.getMinutes()).padStart(2, "0");
+
+    return year + "-" + month + "-" + day + "T" + hour + ":" + minute;
+}
+
+function daysBetween(fromDate, toDate) {
+    const msPerDay = 24 * 60 * 60 * 1000;
+    const from = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
+    const to   = new Date(toDate.getFullYear(), toDate.getMonth(), toDate.getDate());
+    const diff = to.getTime() - from.getTime();
+
+    return Math.round(diff / msPerDay);
+}
+
+
+/* ===============================================================
+   2.  Local storage
+   =============================================================== */
+
+function loadSettings() {
+    const raw = window.localStorage.getItem(SETTINGS_KEY);
+
+    if (raw === null) {
+        return null;
+    }
+
+    try {
+        return JSON.parse(raw);
+    } catch (error) {
+        return null;
+    }
+}
+
+function saveSettings(settings) {
+    window.localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+}
+
+function loadPending() {
+    const raw = window.localStorage.getItem(PENDING_KEY);
+
+    if (raw === null) {
+        return [];
+    }
+
+    try {
+        const parsed = JSON.parse(raw);
+
+        if (Array.isArray(parsed) === false) {
+            return [];
+        }
+
+        return parsed;
+    } catch (error) {
+        return [];
+    }
+}
+
+function savePending(rows) {
+    window.localStorage.setItem(PENDING_KEY, JSON.stringify(rows));
+}
+
+function loadFormDefaults() {
+    const raw = window.localStorage.getItem(DEFAULTS_KEY);
+
+    if (raw === null) {
+        return {};
+    }
+
+    try {
+        return JSON.parse(raw);
+    } catch (error) {
+        return {};
+    }
+}
+
+function saveFormDefault(key, value) {
+    const defaults = loadFormDefaults();
+    defaults[key] = value;
+    window.localStorage.setItem(DEFAULTS_KEY, JSON.stringify(defaults));
+}
+
+
+/* ===============================================================
+   3.  Base64 that survives UTF-8
+   =============================================================== */
+
+function encodeBase64(text) {
+    const bytes = new TextEncoder().encode(text);
+    let binary = "";
+
+    for (let i = 0; i < bytes.length; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+
+    return window.btoa(binary);
+}
+
+function decodeBase64(base64) {
+    const cleaned = base64.replace(/\s/g, "");
+    const binary = window.atob(cleaned);
+    const bytes = new Uint8Array(binary.length);
+
+    for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+    }
+
+    return new TextDecoder().decode(bytes);
+}
+
+
+/* ===============================================================
+   4.  CSV — explicit character-by-character parse, RFC-style quotes
+   =============================================================== */
+
+function parseCsvLine(line) {
+    const fields = [];
+    let current = "";
+    let insideQuotes = false;
+    let i = 0;
+
+    while (i < line.length) {
+        const character = line[i];
+
+        if (insideQuotes === true) {
+            if (character === '"') {
+                const next = line[i + 1];
+
+                if (next === '"') {
+                    current += '"';
+                    i += 2;
+                    continue;
+                }
+
+                insideQuotes = false;
+                i += 1;
+                continue;
+            }
+
+            current += character;
+            i += 1;
+            continue;
+        }
+
+        if (character === '"') {
+            insideQuotes = true;
+            i += 1;
+            continue;
+        }
+
+        if (character === ",") {
+            fields.push(current);
+            current = "";
+            i += 1;
+            continue;
+        }
+
+        current += character;
+        i += 1;
+    }
+
+    fields.push(current);
+    return fields;
+}
+
+function parseCsv(text) {
+    const normalised = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+    const lines = normalised.split("\n");
+    const rows = [];
+
+    for (let i = 1; i < lines.length; i++) {
+        const line = lines[i];
+
+        if (line.trim().length === 0) {
+            continue;
+        }
+
+        const fields = parseCsvLine(line);
+        const row = {};
+
+        for (let c = 0; c < CSV_COLUMNS.length; c++) {
+            const column = CSV_COLUMNS[c];
+            let value = fields[c];
+
+            if (value === undefined) {
+                value = "";
+            }
+
+            row[column] = value;
+        }
+
+        rows.push(row);
+    }
+
+    return rows;
+}
+
+function escapeCsvField(value) {
+    const text = String(value === null || value === undefined ? "" : value);
+    const needsQuotes = text.includes(",") || text.includes('"') || text.includes("\n");
+
+    if (needsQuotes === false) {
+        return text;
+    }
+
+    const escaped = text.replace(/"/g, '""');
+    return '"' + escaped + '"';
+}
+
+function serialiseCsv(rows) {
+    const lines = [];
+    lines.push(CSV_COLUMNS.join(","));
+
+    for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const fields = [];
+
+        for (let c = 0; c < CSV_COLUMNS.length; c++) {
+            const column = CSV_COLUMNS[c];
+            fields.push(escapeCsvField(row[column]));
+        }
+
+        lines.push(fields.join(","));
+    }
+
+    return lines.join("\n") + "\n";
+}
+
+
+/* ===============================================================
+   5.  GitHub contents API
+   =============================================================== */
+
+function githubHeaders() {
+    return {
+        "Authorization": "Bearer " + state.settings.token,
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28"
+    };
+}
+
+async function githubRead(repo, path) {
+    const url = "https://api.github.com/repos/" + state.settings.owner + "/" + repo +
+                "/contents/" + path + "?ref=HEAD&t=" + Date.now();
+
+    const response = await fetch(url, { headers: githubHeaders(), cache: "no-store" });
+
+    if (response.status === 404) {
+        return { text: null, sha: null };
+    }
+
+    if (response.ok === false) {
+        const detail = await response.text();
+        throw new Error("read " + path + " failed (" + response.status + "): " + detail);
+    }
+
+    const payload = await response.json();
+    const text = decodeBase64(payload.content);
+
+    return { text: text, sha: payload.sha };
+}
+
+async function githubWrite(repo, path, text, sha, message) {
+    const url = "https://api.github.com/repos/" + state.settings.owner + "/" + repo +
+                "/contents/" + path;
+
+    const body = {
+        message: message,
+        content: encodeBase64(text)
+    };
+
+    if (sha !== null && sha !== undefined) {
+        body.sha = sha;
+    }
+
+    const response = await fetch(url, {
+        method: "PUT",
+        headers: githubHeaders(),
+        body: JSON.stringify(body)
+    });
+
+    if (response.status === 409 || response.status === 422) {
+        return { ok: false, conflict: true, sha: null };
+    }
+
+    if (response.ok === false) {
+        const detail = await response.text();
+        throw new Error("write " + path + " failed (" + response.status + "): " + detail);
+    }
+
+    const payload = await response.json();
+    return { ok: true, conflict: false, sha: payload.content.sha };
+}
+
+
+/* ===============================================================
+   6.  Config lookups
+   =============================================================== */
+
+function findAccount(accountId) {
+    for (let i = 0; i < state.config.accounts.length; i++) {
+        if (state.config.accounts[i].id === accountId) {
+            return state.config.accounts[i];
+        }
+    }
+    return null;
+}
+
+function findWallet(walletId) {
+    for (let i = 0; i < state.config.wallets.length; i++) {
+        if (state.config.wallets[i].id === walletId) {
+            return state.config.wallets[i];
+        }
+    }
+    return null;
+}
+
+function currencyOfWallet(walletId) {
+    const wallet = findWallet(walletId);
+
+    if (wallet === null) {
+        return "";
+    }
+
+    const account = findAccount(wallet.account);
+
+    if (account === null) {
+        return "";
+    }
+
+    return account.currency;
+}
+
+function walletsOfAccount(accountId) {
+    const found = [];
+
+    for (let i = 0; i < state.config.wallets.length; i++) {
+        if (state.config.wallets[i].account === accountId) {
+            found.push(state.config.wallets[i]);
+        }
+    }
+
+    return found;
+}
+
+
+/* ===============================================================
+   7.  Balances — one explicit pass over the ledger
+   =============================================================== */
+
+function applyRowToBalances(row, balances) {
+    const amountOut = parseFloat(row.amount);
+    const amountIn  = parseFloat(row.to_amount);
+
+    if (row.type === "spend") {
+        if (isNaN(amountOut) === false) {
+            balances[row.wallet] = (balances[row.wallet] || 0) - amountOut;
+        }
+        return;
+    }
+
+    if (row.type === "income") {
+        if (isNaN(amountOut) === false) {
+            balances[row.wallet] = (balances[row.wallet] || 0) + amountOut;
+        }
+        return;
+    }
+
+    if (row.type === "transfer" || row.type === "move") {
+        if (isNaN(amountOut) === false) {
+            balances[row.wallet] = (balances[row.wallet] || 0) - amountOut;
+        }
+
+        if (isNaN(amountIn) === false) {
+            balances[row.to_wallet] = (balances[row.to_wallet] || 0) + amountIn;
+        }
+        return;
+    }
+}
+
+function computeWalletBalances() {
+    const balances = {};
+
+    for (let i = 0; i < state.config.wallets.length; i++) {
+        const wallet = state.config.wallets[i];
+        balances[wallet.id] = 0;
+    }
+
+    for (let i = 0; i < state.rows.length; i++) {
+        const row = state.rows[i];
+        applyRowToBalances(row, balances);
+    }
+
+    return balances;
+}
+
+function sumAccountBalance(accountId, balances) {
+    const wallets = walletsOfAccount(accountId);
+    let total = 0;
+
+    for (let i = 0; i < wallets.length; i++) {
+        const wallet = wallets[i];
+        total += balances[wallet.id] || 0;
+    }
+
+    return total;
+}
+
+function sumSpentToday(accountId) {
+    const todayPrefix = localTimestamp(new Date()).slice(0, 10);
+    let total = 0;
+
+    for (let i = 0; i < state.rows.length; i++) {
+        const row = state.rows[i];
+
+        if (row.type !== "spend") {
+            continue;
+        }
+
+        if (row.timestamp.slice(0, 10) !== todayPrefix) {
+            continue;
+        }
+
+        if (row.account !== accountId) {
+            continue;
+        }
+
+        const amount = parseFloat(row.amount);
+
+        if (isNaN(amount) === false) {
+            total += amount;
+        }
+    }
+
+    return total;
+}
+
+
+/* ===============================================================
+   8.  Rendering
+   =============================================================== */
+
+function renderHeadline() {
+    const balances = computeWalletBalances();
+    const accountId = state.config.period.primaryAccount;
+    const account = findAccount(accountId);
+
+    if (account === null) {
+        return;
+    }
+
+    const remaining = sumAccountBalance(accountId, balances);
+
+    byId("hlAcctName").textContent = account.name;
+    byId("hlCur").textContent = account.currency;
+    byId("hlAmount").childNodes[0].nodeValue = formatAmount(remaining, account.currency);
+
+    if (remaining < 0) {
+        byId("hlAmount").classList.add("is-neg");
+    } else {
+        byId("hlAmount").classList.remove("is-neg");
+    }
+
+    const endDate = new Date(state.config.period.end + "T23:59:59");
+    const daysLeft = daysBetween(new Date(), endDate) + 1;
+
+    if (daysLeft > 0) {
+        byId("hlDays").textContent = String(daysLeft);
+        const perDay = remaining / daysLeft;
+        byId("hlPace").textContent = formatAmount(perDay, account.currency) + " " + account.currency + " per day at this rate";
+    } else {
+        byId("hlDays").textContent = "0";
+        byId("hlPace").textContent = "Period has ended — set a new one under Wallets.";
+    }
+
+    byId("hlNote").textContent = "Across " + walletsOfAccount(accountId).length + " wallets, through " + state.config.period.end;
+
+    const spentToday = sumSpentToday(accountId);
+    byId("hlToday").textContent = formatAmount(spentToday, account.currency);
+    byId("hlTodayNote").textContent = account.currency + " logged since midnight";
+}
+
+function renderWallets() {
+    const balances = computeWalletBalances();
+    const container = byId("walletList");
+    let html = "";
+
+    for (let a = 0; a < state.config.accounts.length; a++) {
+        const account = state.config.accounts[a];
+        const wallets = walletsOfAccount(account.id);
+
+        if (wallets.length === 0) {
+            continue;
+        }
+
+        const accountTotal = sumAccountBalance(account.id, balances);
+
+        let largest = 0;
+        for (let w = 0; w < wallets.length; w++) {
+            const value = Math.abs(balances[wallets[w].id] || 0);
+            if (value > largest) {
+                largest = value;
+            }
+        }
+
+        html += '<div class="acct-band">';
+        html += '<span class="name">' + escapeHtml(account.name) + '</span>';
+        html += '<span class="total num">' + formatAmount(accountTotal, account.currency) + " " + escapeHtml(account.currency) + "</span>";
+        html += "</div>";
+
+        for (let w = 0; w < wallets.length; w++) {
+            const wallet = wallets[w];
+            const balance = balances[wallet.id] || 0;
+
+            let widthPercent = 0;
+            if (largest > 0) {
+                widthPercent = (Math.abs(balance) / largest) * 100;
+            }
+
+            let negativeClass = "";
+            if (balance < 0) {
+                negativeClass = " is-neg";
+            }
+
+            html += '<div class="wrow">';
+            html += '<span class="wname">' + escapeHtml(wallet.name) + "</span>";
+            html += '<span class="wbal num' + negativeClass + '">' + formatAmount(balance, account.currency) + "</span>";
+            html += '<div class="wbar"><span class="' + negativeClass.trim() + '" style="width:' + widthPercent.toFixed(1) + '%"></span></div>';
+            html += "</div>";
+        }
+    }
+
+    if (html.length === 0) {
+        html = '<p class="empty">No wallets yet. Add some under <strong>Wallets</strong>.</p>';
+    }
+
+    container.innerHTML = html;
+}
+
+function describeRow(row) {
+    if (row.type === "transfer" || row.type === "move") {
+        const fromWallet = findWallet(row.wallet);
+        const toWallet = findWallet(row.to_wallet);
+        const fromName = fromWallet === null ? row.wallet : fromWallet.name;
+        const toName = toWallet === null ? row.to_wallet : toWallet.name;
+        return fromName + " → " + toName;
+    }
+
+    const wallet = findWallet(row.wallet);
+
+    if (wallet === null) {
+        return row.wallet;
+    }
+
+    return wallet.name;
+}
+
+function renderTransactions() {
+    const container = byId("txList");
+    const total = state.rows.length;
+    let html = "";
+
+    byId("txCount").textContent = total + " entries";
+
+    if (total === 0) {
+        container.innerHTML = '<p class="empty">Nothing logged yet.<br>Start with an <strong>Income</strong> entry to give your wallets an opening balance, then log spends as they happen.</p>';
+        return;
+    }
+
+    const firstIndex = Math.max(0, total - 80);
+
+    for (let i = total - 1; i >= firstIndex; i--) {
+        const row = state.rows[i];
+        const amount = parseFloat(row.amount);
+        const dayPart = row.timestamp.slice(5, 10).replace("-", "/");
+        const timePart = row.timestamp.slice(11, 16);
+
+        let amountClass = "";
+        let prefix = "−";
+
+        if (row.type === "income") {
+            amountClass = " is-in";
+            prefix = "+";
+        }
+
+        if (row.type === "transfer" || row.type === "move") {
+            amountClass = " is-mv";
+            prefix = "";
+        }
+
+        let pill = "";
+        if (row.type !== "spend") {
+            pill = '<span class="pill">' + escapeHtml(row.type) + "</span>";
+        }
+
+        let headline = row.merchant;
+        if (headline === "") {
+            headline = describeRow(row);
+        }
+
+        let metaBits = describeRow(row);
+        if (row.item !== "") {
+            metaBits = metaBits + " · " + row.item;
+        }
+        if (row.type === "transfer") {
+            metaBits = metaBits + " · " + formatAmount(parseFloat(row.to_amount), row.to_currency) + " " + row.to_currency + " in";
+        }
+
+        html += '<div class="txrow">';
+        html += '<span class="when num">' + escapeHtml(dayPart) + " " + escapeHtml(timePart) + "</span>";
+        html += '<span class="what">';
+        html += '<span class="merchant">' + pill + escapeHtml(headline) + "</span>";
+        html += '<span class="meta">' + escapeHtml(metaBits) + "</span>";
+        html += "</span>";
+        html += '<span class="amt num' + amountClass + '">' + prefix + formatAmount(amount, row.currency) + " " + escapeHtml(row.currency);
+        html += '<button class="kill" data-index="' + i + '" title="Delete">✕</button></span>';
+        html += "</div>";
+    }
+
+    container.innerHTML = html;
+
+    const killButtons = container.querySelectorAll(".kill");
+    for (let i = 0; i < killButtons.length; i++) {
+        killButtons[i].addEventListener("click", onDeleteRow);
+    }
+}
+
+function renderSyncState(stateName, text) {
+    byId("syncDot").setAttribute("data-state", stateName);
+    byId("syncText").textContent = text;
+}
+
+function renderMerchantList() {
+    const datalist = byId("merchantList");
+    let html = "";
+
+    for (let i = 0; i < state.config.merchants.length; i++) {
+        html += '<option value="' + escapeHtml(state.config.merchants[i]) + '">';
+    }
+
+    datalist.innerHTML = html;
+}
+
+function renderAll() {
+    renderHeadline();
+    renderWallets();
+    renderTransactions();
+    renderMerchantList();
+}
+
+
+/* ===============================================================
+   9.  Forms
+   =============================================================== */
+
+function walletSelectHtml(elementId, labelText, selectedId) {
+    let html = '<div class="field"><label for="' + elementId + '">' + labelText + "</label>";
+    html += '<select id="' + elementId + '">';
+
+    for (let a = 0; a < state.config.accounts.length; a++) {
+        const account = state.config.accounts[a];
+        const wallets = walletsOfAccount(account.id);
+
+        if (wallets.length === 0) {
+            continue;
+        }
+
+        html += '<optgroup label="' + escapeHtml(account.name) + " · " + escapeHtml(account.currency) + '">';
+
+        for (let w = 0; w < wallets.length; w++) {
+            const wallet = wallets[w];
+            let selectedAttribute = "";
+
+            if (wallet.id === selectedId) {
+                selectedAttribute = " selected";
+            }
+
+            html += '<option value="' + escapeHtml(wallet.id) + '"' + selectedAttribute + ">" + escapeHtml(wallet.name) + "</option>";
+        }
+
+        html += "</optgroup>";
+    }
+
+    html += "</select></div>";
+    return html;
+}
+
+function amountFieldHtml(elementId, labelText) {
+    let html = '<div class="field amount"><label for="' + elementId + '">' + labelText;
+    html += ' <span class="cur-hint" id="' + elementId + 'Cur"></span></label>';
+    html += '<input id="' + elementId + '" type="text" inputmode="decimal" placeholder="0.00" autocomplete="off"></div>';
+    return html;
+}
+
+function textFieldHtml(elementId, labelText, placeholder, useDatalist) {
+    let listAttribute = "";
+
+    if (useDatalist === true) {
+        listAttribute = ' list="merchantList"';
+    }
+
+    let html = '<div class="field"><label for="' + elementId + '">' + labelText + "</label>";
+    html += '<input id="' + elementId + '" type="text" placeholder="' + placeholder + '"' + listAttribute + ' autocomplete="off"></div>';
+    return html;
+}
+
+function buildForm(type) {
+    const defaults = loadFormDefaults();
+    const container = byId("formFields");
+    let html = "";
+
+    if (type === "spend") {
+        html += amountFieldHtml("fAmount", "Amount");
+        html += walletSelectHtml("fWallet", "Out of wallet", defaults.spendWallet);
+        html += '<div class="field-pair">';
+        html += textFieldHtml("fMerchant", "Where", "familymart", true);
+        html += '<div class="vr"></div>';
+        html += textFieldHtml("fItem", "What", "onigiri", false);
+        html += "</div>";
+        byId("submitBtn").textContent = "Log spend";
+    }
+
+    if (type === "income") {
+        html += amountFieldHtml("fAmount", "Amount in");
+        html += walletSelectHtml("fWallet", "Into wallet", defaults.incomeWallet);
+        html += textFieldHtml("fMerchant", "Source", "parents", true);
+        byId("submitBtn").textContent = "Log income";
+    }
+
+    if (type === "transfer") {
+        html += amountFieldHtml("fAmount", "Amount out");
+        html += walletSelectHtml("fWallet", "Out of wallet", defaults.transferFrom);
+        html += amountFieldHtml("fToAmount", "Amount that arrived");
+        html += walletSelectHtml("fToWallet", "Into wallet", defaults.transferTo);
+        html += textFieldHtml("fMerchant", "Via", "flip", true);
+        byId("submitBtn").textContent = "Log top up";
+    }
+
+    if (type === "move") {
+        html += amountFieldHtml("fAmount", "Amount");
+        html += walletSelectHtml("fWallet", "Out of wallet", defaults.moveFrom);
+        html += walletSelectHtml("fToWallet", "Into wallet", defaults.moveTo);
+        byId("submitBtn").textContent = "Move it";
+    }
+
+    container.innerHTML = html;
+    wireCurrencyHints();
+    byId("formNote").textContent = "";
+    byId("formNote").classList.remove("is-err");
+}
+
+function wireCurrencyHints() {
+    const walletSelect = byId("fWallet");
+    const toWalletSelect = byId("fToWallet");
+
+    if (walletSelect !== null) {
+        const update = function () {
+            const hint = byId("fAmountCur");
+            if (hint !== null) {
+                hint.textContent = currencyOfWallet(walletSelect.value);
+            }
+        };
+        walletSelect.addEventListener("change", update);
+        update();
+    }
+
+    if (toWalletSelect !== null) {
+        const updateTo = function () {
+            const hint = byId("fToAmountCur");
+            if (hint !== null) {
+                hint.textContent = currencyOfWallet(toWalletSelect.value);
+            }
+        };
+        toWalletSelect.addEventListener("change", updateTo);
+        updateTo();
+    }
+}
+
+function readAmount(elementId) {
+    const element = byId(elementId);
+
+    if (element === null) {
+        return NaN;
+    }
+
+    const cleaned = element.value.replace(/[^0-9.\-]/g, "");
+    return parseFloat(cleaned);
+}
+
+function readText(elementId) {
+    const element = byId(elementId);
+
+    if (element === null) {
+        return "";
+    }
+
+    return element.value.trim();
+}
+
+function blankRow() {
+    const row = {};
+
+    for (let i = 0; i < CSV_COLUMNS.length; i++) {
+        row[CSV_COLUMNS[i]] = "";
+    }
+
+    return row;
+}
+
+function buildRowFromForm(type) {
+    const row = blankRow();
+    row.timestamp = localTimestamp(new Date());
+    row.type = type;
+
+    const amount = readAmount("fAmount");
+
+    if (isNaN(amount) === true || amount <= 0) {
+        return { error: "Enter an amount." };
+    }
+
+    if (type === "spend" || type === "income") {
+        const walletId = readText("fWallet");
+        row.amount = String(amount);
+        row.currency = currencyOfWallet(walletId);
+        row.wallet = walletId;
+        row.account = findWallet(walletId).account;
+        row.merchant = readText("fMerchant").toLowerCase();
+        row.item = readText("fItem");
+
+        if (type === "spend") {
+            saveFormDefault("spendWallet", walletId);
+        } else {
+            saveFormDefault("incomeWallet", walletId);
+        }
+
+        return { row: row };
+    }
+
+    if (type === "transfer") {
+        const fromWalletId = readText("fWallet");
+        const toWalletId = readText("fToWallet");
+        const arrived = readAmount("fToAmount");
+
+        if (isNaN(arrived) === true || arrived <= 0) {
+            return { error: "Enter the amount that actually arrived." };
+        }
+
+        if (fromWalletId === toWalletId) {
+            return { error: "Pick two different wallets." };
+        }
+
+        row.amount = String(amount);
+        row.currency = currencyOfWallet(fromWalletId);
+        row.wallet = fromWalletId;
+        row.account = findWallet(fromWalletId).account;
+        row.to_amount = String(arrived);
+        row.to_currency = currencyOfWallet(toWalletId);
+        row.to_wallet = toWalletId;
+        row.to_account = findWallet(toWalletId).account;
+        row.merchant = readText("fMerchant").toLowerCase();
+
+        saveFormDefault("transferFrom", fromWalletId);
+        saveFormDefault("transferTo", toWalletId);
+
+        return { row: row };
+    }
+
+    if (type === "move") {
+        const fromWalletId = readText("fWallet");
+        const toWalletId = readText("fToWallet");
+        const fromWallet = findWallet(fromWalletId);
+        const toWallet = findWallet(toWalletId);
+
+        if (fromWalletId === toWalletId) {
+            return { error: "Pick two different wallets." };
+        }
+
+        if (fromWallet.account !== toWallet.account) {
+            return { error: "Those wallets are in different accounts — use Top up instead." };
+        }
+
+        row.amount = String(amount);
+        row.currency = currencyOfWallet(fromWalletId);
+        row.wallet = fromWalletId;
+        row.account = fromWallet.account;
+        row.to_amount = String(amount);
+        row.to_currency = currencyOfWallet(toWalletId);
+        row.to_wallet = toWalletId;
+        row.to_account = toWallet.account;
+
+        saveFormDefault("moveFrom", fromWalletId);
+        saveFormDefault("moveTo", toWalletId);
+
+        return { row: row };
+    }
+
+    return { error: "Unknown entry type." };
+}
+
+async function onSubmitEntry(event) {
+    event.preventDefault();
+
+    if (state.busy === true) {
+        return;
+    }
+
+    const result = buildRowFromForm(state.activeType);
+    const note = byId("formNote");
+
+    if (result.error !== undefined) {
+        note.textContent = result.error;
+        note.classList.add("is-err");
+        return;
+    }
+
+    note.classList.remove("is-err");
+
+    state.rows.push(result.row);
+    state.pending.push(result.row);
+    savePending(state.pending);
+
+    rememberMerchant(result.row.merchant);
+    buildForm(state.activeType);
+    renderAll();
+    note.textContent = "Logged. Syncing…";
+
+    await syncUp();
+
+    if (state.pending.length === 0) {
+        note.textContent = "Logged and synced.";
+    } else {
+        note.textContent = "Logged locally — will sync when you're back online.";
+    }
+}
+
+function rememberMerchant(merchant) {
+    if (merchant === "") {
+        return;
+    }
+
+    for (let i = 0; i < state.config.merchants.length; i++) {
+        if (state.config.merchants[i] === merchant) {
+            return;
+        }
+    }
+
+    state.config.merchants.push(merchant);
+    pushConfig();
+}
+
+async function onDeleteRow(event) {
+    if (state.pending.length > 0) {
+        byId("formNote").textContent = "Sync the pending entries before deleting.";
+        return;
+    }
+
+    const index = parseInt(event.currentTarget.getAttribute("data-index"), 10);
+
+    if (isNaN(index) === true) {
+        return;
+    }
+
+    state.rows.splice(index, 1);
+    renderAll();
+
+    const text = serialiseCsv(state.rows);
+    await pushLog(text, "delete entry");
+}
+
+
+/* ===============================================================
+   10.  Sync
+   =============================================================== */
+
+async function pushLog(text, message) {
+    state.busy = true;
+    renderSyncState("busy", "saving");
+
+    try {
+        let result = await githubWrite(state.settings.repo, LOG_PATH, text, state.logSha, message);
+
+        if (result.conflict === true) {
+            const fresh = await githubRead(state.settings.repo, LOG_PATH);
+            const remoteRows = fresh.text === null ? [] : parseCsv(fresh.text);
+
+            for (let i = 0; i < state.pending.length; i++) {
+                remoteRows.push(state.pending[i]);
+            }
+
+            state.rows = remoteRows;
+            state.logSha = fresh.sha;
+
+            const merged = serialiseCsv(state.rows);
+            result = await githubWrite(state.settings.repo, LOG_PATH, merged, state.logSha, message + " (merged)");
+            renderAll();
+        }
+
+        if (result.ok === true) {
+            state.logSha = result.sha;
+            state.pending = [];
+            savePending(state.pending);
+            renderSyncState("ok", "synced");
+            await pushSummary();
+            state.busy = false;
+            return true;
+        }
+
+        renderSyncState("dirty", "not saved");
+        state.busy = false;
+        return false;
+
+    } catch (error) {
+        renderSyncState("dirty", "offline");
+        state.busy = false;
+        return false;
+    }
+}
+
+async function syncUp() {
+    if (state.pending.length === 0) {
+        return true;
+    }
+
+    const text = serialiseCsv(state.rows);
+    return await pushLog(text, "log " + state.pending.length + " entr" + (state.pending.length === 1 ? "y" : "ies"));
+}
+
+async function pushConfig() {
+    try {
+        const text = JSON.stringify(state.config, null, 2) + "\n";
+        const result = await githubWrite(state.settings.repo, CONFIG_PATH, text, state.configSha, "update config");
+
+        if (result.conflict === true) {
+            const fresh = await githubRead(state.settings.repo, CONFIG_PATH);
+            state.configSha = fresh.sha;
+            const retry = await githubWrite(state.settings.repo, CONFIG_PATH, text, state.configSha, "update config (merged)");
+
+            if (retry.ok === true) {
+                state.configSha = retry.sha;
+            }
+
+            return;
+        }
+
+        if (result.ok === true) {
+            state.configSha = result.sha;
+        }
+    } catch (error) {
+        renderSyncState("dirty", "config not saved");
+    }
+}
+
+function buildSummary() {
+    const balances = computeWalletBalances();
+    const endDate = new Date(state.config.period.end + "T23:59:59");
+    const daysLeft = daysBetween(new Date(), endDate) + 1;
+
+    const accountSummaries = [];
+
+    for (let a = 0; a < state.config.accounts.length; a++) {
+        const account = state.config.accounts[a];
+        const wallets = walletsOfAccount(account.id);
+        const walletSummaries = [];
+
+        for (let w = 0; w < wallets.length; w++) {
+            const wallet = wallets[w];
+            walletSummaries.push({
+                name: wallet.name,
+                balance: Math.round((balances[wallet.id] || 0) * 100) / 100
+            });
+        }
+
+        accountSummaries.push({
+            name: account.name,
+            currency: account.currency,
+            total: Math.round(sumAccountBalance(account.id, balances) * 100) / 100,
+            wallets: walletSummaries
+        });
+    }
+
+    const primaryAccount = findAccount(state.config.period.primaryAccount);
+    const primaryTotal = sumAccountBalance(state.config.period.primaryAccount, balances);
+
+    return {
+        updated: localTimestamp(new Date()),
+        daysRemaining: daysLeft,
+        headline: {
+            account: primaryAccount === null ? "" : primaryAccount.name,
+            currency: primaryAccount === null ? "" : primaryAccount.currency,
+            remaining: Math.round(primaryTotal * 100) / 100,
+            perDay: daysLeft > 0 ? Math.round((primaryTotal / daysLeft) * 100) / 100 : 0
+        },
+        accounts: accountSummaries
+    };
+}
+
+async function pushSummary() {
+    const publicRepo = state.settings.publicRepo;
+
+    if (publicRepo === undefined || publicRepo === null || publicRepo === "") {
+        return;
+    }
+
+    try {
+        const existing = await githubRead(publicRepo, "summary.json");
+        const text = JSON.stringify(buildSummary(), null, 2) + "\n";
+        await githubWrite(publicRepo, "summary.json", text, existing.sha, "update summary");
+    } catch (error) {
+        /* The widget feed is best-effort; never block logging on it. */
+    }
+}
+
+
+/* ===============================================================
+   11.  Config panel
+   =============================================================== */
+
+function renderConfigPanel() {
+    const accountSelect = byId("newWalletAcct");
+    const periodSelect = byId("periodAcct");
+    let accountOptions = "";
+
+    for (let a = 0; a < state.config.accounts.length; a++) {
+        const account = state.config.accounts[a];
+        accountOptions += '<option value="' + escapeHtml(account.id) + '">' + escapeHtml(account.name) + "</option>";
+    }
+
+    accountSelect.innerHTML = accountOptions;
+    periodSelect.innerHTML = accountOptions;
+    periodSelect.value = state.config.period.primaryAccount;
+    byId("periodEnd").value = state.config.period.end;
+
+    let accountChips = "";
+    for (let a = 0; a < state.config.accounts.length; a++) {
+        const account = state.config.accounts[a];
+        accountChips += '<span class="chip">' + escapeHtml(account.name) + " · " + escapeHtml(account.currency);
+        accountChips += '<button data-kind="account" data-id="' + escapeHtml(account.id) + '">✕</button></span>';
+    }
+    byId("acctChips").innerHTML = accountChips;
+
+    let walletChips = "";
+    for (let w = 0; w < state.config.wallets.length; w++) {
+        const wallet = state.config.wallets[w];
+        const account = findAccount(wallet.account);
+        const accountName = account === null ? "?" : account.name;
+        walletChips += '<span class="chip">' + escapeHtml(wallet.name) + " · " + escapeHtml(accountName);
+        walletChips += '<button data-kind="wallet" data-id="' + escapeHtml(wallet.id) + '">✕</button></span>';
+    }
+    byId("walletChips").innerHTML = walletChips;
+
+    const chipButtons = document.querySelectorAll(".chip button");
+    for (let i = 0; i < chipButtons.length; i++) {
+        chipButtons[i].addEventListener("click", onRemoveConfigItem);
+    }
+}
+
+function onRemoveConfigItem(event) {
+    const kind = event.currentTarget.getAttribute("data-kind");
+    const id = event.currentTarget.getAttribute("data-id");
+
+    if (kind === "account") {
+        const remaining = [];
+        for (let i = 0; i < state.config.accounts.length; i++) {
+            if (state.config.accounts[i].id !== id) {
+                remaining.push(state.config.accounts[i]);
+            }
+        }
+        state.config.accounts = remaining;
+    }
+
+    if (kind === "wallet") {
+        const remaining = [];
+        for (let i = 0; i < state.config.wallets.length; i++) {
+            if (state.config.wallets[i].id !== id) {
+                remaining.push(state.config.wallets[i]);
+            }
+        }
+        state.config.wallets = remaining;
+    }
+
+    renderConfigPanel();
+}
+
+function onAddAccount() {
+    const name = readText("newAcctName");
+    const currency = readText("newAcctCur").toUpperCase();
+
+    if (name === "" || currency === "") {
+        byId("configNote").textContent = "An account needs a name and a currency.";
+        return;
+    }
+
+    const account = {
+        id: slugify(name),
+        name: name,
+        currency: currency
+    };
+
+    state.config.accounts.push(account);
+    byId("newAcctName").value = "";
+    byId("newAcctCur").value = "";
+    byId("configNote").textContent = "";
+    renderConfigPanel();
+}
+
+function onAddWallet() {
+    const name = readText("newWalletName");
+    const accountId = readText("newWalletAcct");
+
+    if (name === "" || accountId === "") {
+        byId("configNote").textContent = "A wallet needs a name and an account.";
+        return;
+    }
+
+    const wallet = {
+        id: slugify(name),
+        name: name,
+        account: accountId
+    };
+
+    state.config.wallets.push(wallet);
+    byId("newWalletName").value = "";
+    byId("configNote").textContent = "";
+    renderConfigPanel();
+}
+
+async function onCloseConfig() {
+    state.config.period.end = byId("periodEnd").value;
+    state.config.period.primaryAccount = byId("periodAcct").value;
+
+    byId("configVeil").hidden = true;
+    buildForm(state.activeType);
+    renderAll();
+    await pushConfig();
+}
+
+
+/* ===============================================================
+   12.  Boot
+   =============================================================== */
+
+const DEFAULT_CONFIG = {
+    period: { start: "2026-08-08", end: "2026-08-31", primaryAccount: "tng" },
+    accounts: [
+        { id: "tng",  name: "Touch 'n Go", currency: "MYR" },
+        { id: "cash", name: "Cash",        currency: "MYR" },
+        { id: "bca",  name: "BCA",         currency: "IDR" },
+        { id: "card", name: "Card",        currency: "USD" }
+    ],
+    wallets: [
+        { id: "eating-out",    name: "Eating out",    account: "tng" },
+        { id: "groceries",     name: "Groceries",     account: "tng" },
+        { id: "impulse",       name: "Impulse",       account: "tng" },
+        { id: "transport",     name: "Transport",     account: "tng" },
+        { id: "essentials",    name: "Essentials",    account: "tng" },
+        { id: "cash-hand",     name: "On hand",       account: "cash" },
+        { id: "allowance",     name: "Allowance",     account: "bca" },
+        { id: "savings",       name: "Savings",       account: "bca" },
+        { id: "subscriptions", name: "Subscriptions", account: "card" }
+    ],
+    merchants: ["familymart", "bilamart", "grabmart", "grabfood", "grab", "jaya grocer", "flip", "shopee", "anthropic"]
+};
+
+async function loadEverything() {
+    renderSyncState("busy", "loading");
+
+    const configFile = await githubRead(state.settings.repo, CONFIG_PATH);
+
+    if (configFile.text === null) {
+        state.config = DEFAULT_CONFIG;
+        state.configSha = null;
+        await pushConfig();
+    } else {
+        state.config = JSON.parse(configFile.text);
+        state.configSha = configFile.sha;
+    }
+
+    const logFile = await githubRead(state.settings.repo, LOG_PATH);
+
+    if (logFile.text === null) {
+        state.rows = [];
+        state.logSha = null;
+    } else {
+        state.rows = parseCsv(logFile.text);
+        state.logSha = logFile.sha;
+    }
+
+    for (let i = 0; i < state.pending.length; i++) {
+        state.rows.push(state.pending[i]);
+    }
+
+    buildForm(state.activeType);
+    renderAll();
+
+    if (state.pending.length > 0) {
+        await syncUp();
+    } else {
+        renderSyncState("ok", "synced");
+    }
+}
+
+function onSetupSave() {
+    const owner = readText("setOwner");
+    const repo = readText("setRepo");
+    const token = readText("setToken");
+    const publicRepo = readText("setPublicRepo");
+
+    if (owner === "" || repo === "" || token === "") {
+        byId("setupNote").textContent = "Username, repo and token are all needed.";
+        byId("setupNote").classList.add("is-err");
+        return;
+    }
+
+    const settings = {
+        owner: owner,
+        repo: repo,
+        token: token,
+        publicRepo: publicRepo
+    };
+
+    saveSettings(settings);
+    state.settings = settings;
+
+    byId("setupVeil").hidden = true;
+    byId("app").hidden = false;
+
+    loadEverything().catch(function (error) {
+        renderSyncState("dirty", "error");
+        window.alert(error.message);
+    });
+}
+
+function onTabClick(event) {
+    const type = event.currentTarget.getAttribute("data-type");
+    const tabs = document.querySelectorAll(".tab");
+
+    for (let i = 0; i < tabs.length; i++) {
+        if (tabs[i].getAttribute("data-type") === type) {
+            tabs[i].setAttribute("aria-selected", "true");
+        } else {
+            tabs[i].setAttribute("aria-selected", "false");
+        }
+    }
+
+    state.activeType = type;
+    buildForm(type);
+}
+
+function wireEvents() {
+    const tabs = document.querySelectorAll(".tab");
+    for (let i = 0; i < tabs.length; i++) {
+        tabs[i].addEventListener("click", onTabClick);
+    }
+
+    byId("entryForm").addEventListener("submit", onSubmitEntry);
+    byId("setupSave").addEventListener("click", onSetupSave);
+    byId("addAcctBtn").addEventListener("click", onAddAccount);
+    byId("addWalletBtn").addEventListener("click", onAddWallet);
+    byId("configDone").addEventListener("click", onCloseConfig);
+
+    byId("openConfig").addEventListener("click", function () {
+        renderConfigPanel();
+        byId("configVeil").hidden = false;
+    });
+
+    byId("reloadBtn").addEventListener("click", function () {
+        loadEverything().catch(function (error) {
+            renderSyncState("dirty", "error");
+            window.alert(error.message);
+        });
+    });
+
+    window.addEventListener("online", function () {
+        syncUp();
+    });
+}
+
+function boot() {
+    wireEvents();
+
+    state.settings = loadSettings();
+    state.pending = loadPending();
+
+    if (state.settings === null) {
+        byId("setupVeil").hidden = false;
+        return;
+    }
+
+    byId("app").hidden = false;
+
+    loadEverything().catch(function (error) {
+        renderSyncState("dirty", "error");
+        window.alert(error.message);
+    });
+}
+
+boot();
+</script>
+</body>
+</html>
