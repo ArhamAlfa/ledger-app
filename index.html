@@ -647,21 +647,29 @@ button, input, select {
 @media (max-width: 900px) {
     :root { --gutter: 1.25rem; }
 
+    /* Children are, in order: hcell, vr, hcell, vr, hcell.
+       Match on :nth-child — :nth-of-type counts div elements, not classes. */
     .headline {
-        grid-template-columns: 1fr 1px 1fr;
+        grid-template-columns: 1fr 1fr;
         row-gap: 0;
     }
 
-    .headline > .hcell:first-child { grid-column: 1 / -1; padding-bottom: 1.25rem; }
-    .headline > .vr:first-of-type  { display: none; }
-    .headline > .hcell:nth-of-type(2) {
-        padding-left: 0;
-        padding-top: 1.25rem;
+    .headline > .vr { display: none; }
+
+    .headline > .hcell:nth-child(1) {
+        grid-column: 1 / -1;
+        padding: 1.75rem 0 1.25rem 0;
+    }
+
+    .headline > .hcell:nth-child(3) {
+        padding: 1.25rem 1.25rem 1.75rem 0;
         border-top: 1px solid var(--hairline-dim);
     }
-    .headline > .hcell:nth-of-type(3) {
-        padding-top: 1.25rem;
+
+    .headline > .hcell:nth-child(5) {
+        padding: 1.25rem 0 1.75rem 1.25rem;
         border-top: 1px solid var(--hairline-dim);
+        border-left: 1px solid var(--hairline-dim);
     }
 
     .split {
