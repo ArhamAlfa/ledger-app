@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#F4F5F0">
 <title>Ledger</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNSIgZmlsbD0iIzFFNEQyQiIvPjxyZWN0IHg9IjciIHk9IjguNSIgd2lkdGg9IjE4IiBoZWlnaHQ9IjIuNiIgcng9IjEuMyIgZmlsbD0iI0Y0RjVGMCIvPjxyZWN0IHg9IjciIHk9IjE0LjciIHdpZHRoPSIxOCIgaGVpZ2h0PSIyLjYiIHJ4PSIxLjMiIGZpbGw9IiNGNEY1RjAiIG9wYWNpdHk9Ii42OCIvPjxyZWN0IHg9IjciIHk9IjIwLjkiIHdpZHRoPSI5IiBoZWlnaHQ9IjIuNiIgcng9IjEuMyIgZmlsbD0iI0Y0RjVGMCIgb3BhY2l0eT0iLjQyIi8+PC9zdmc+Cg==">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNSIgZmlsbD0iIzFFNEQyQiIvPjxyZWN0IHg9IjciIHk9IjguNSIgd2lkdGg9IjE4IiBoZWlnaHQ9IjIuNiIgcng9IjEuMyIgZmlsbD0iI0Y0RjVGMCIvPjxyZWN0IHg9IjciIHk9IjE0LjciIHdpZHRoPSIxOCIgaGVpZ2h0PSIyLjYiIHJ4PSIxLjMiIGZpbGw9IiNGNEY1RjAiIG9wYWNpdHk9Ii42OCIvPjxyZWN0IHg9IjciIHk9IjIwLjkiIHdpZHRoPSI5IiBoZWlnaHQ9IjIuNiIgcng9IjEuMyIgZmlsbD0iI0Y0RjVGMCIgb3BhY2l0eT0iLjQyIi8+PC9zdmc+Cg==">
+<link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiTGVkZ2VyIiwic2hvcnRfbmFtZSI6IkxlZGdlciIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwic3RhcnRfdXJsIjoiLiIsInNjb3BlIjoiLiIsImJhY2tncm91bmRfY29sb3IiOiIjRjRGNUYwIiwidGhlbWVfY29sb3IiOiIjRjRGNUYwIiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlp5QjRiV3h1Y3owaWFIUjBjRG92TDNkM2R5NTNNeTV2Y21jdk1qQXdNQzl6ZG1jaUlIWnBaWGRDYjNnOUlqQWdNQ0F6TWlBek1pSStQSEpsWTNRZ2QybGtkR2c5SWpNeUlpQm9aV2xuYUhROUlqTXlJaUJ5ZUQwaU5TSWdabWxzYkQwaUl6RkZORVF5UWlJdlBqeHlaV04wSUhnOUlqY2lJSGs5SWpndU5TSWdkMmxrZEdnOUlqRTRJaUJvWldsbmFIUTlJakl1TmlJZ2NuZzlJakV1TXlJZ1ptbHNiRDBpSTBZMFJqVkdNQ0l2UGp4eVpXTjBJSGc5SWpjaUlIazlJakUwTGpjaUlIZHBaSFJvUFNJeE9DSWdhR1ZwWjJoMFBTSXlMallpSUhKNFBTSXhMak1pSUdacGJHdzlJaU5HTkVZMVJqQWlJRzl3WVdOcGRIazlJaTQyT0NJdlBqeHlaV04wSUhnOUlqY2lJSGs5SWpJd0xqa2lJSGRwWkhSb1BTSTVJaUJvWldsbmFIUTlJakl1TmlJZ2NuZzlJakV1TXlJZ1ptbHNiRDBpSTBZMFJqVkdNQ0lnYjNCaFkybDBlVDBpTGpReUlpOCtQQzl6ZG1jK0NnPT0iLCJzaXplcyI6ImFueSIsInR5cGUiOiJpbWFnZS9zdmcreG1sIiwicHVycG9zZSI6ImFueSJ9XX0K">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -557,6 +560,31 @@ button, input, select {
 
 .veil[hidden] { display: none; }
 
+.veil-close {
+    position: fixed;
+    top: 1.1rem;
+    right: 1.4rem;
+    width: 2.25rem;
+    height: 2.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 2px;
+    color: var(--ink-muted);
+    font-size: 0.875rem;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.veil-close:hover {
+    border-color: var(--pine);
+    color: var(--pine);
+    background: var(--mint);
+}
+
 .panel {
     max-width: 520px;
     margin: 0 auto;
@@ -704,6 +732,7 @@ button, input, select {
      Wallet / account editor
      ============================================================= -->
 <div class="veil" id="configVeil" hidden>
+  <button class="veil-close" id="configClose" title="Save and close" aria-label="Save and close">✕</button>
   <div class="panel">
     <h1>Accounts &amp; wallets</h1>
     <p>Wallets are envelopes inside an account. They double as your categories &mdash; a purchase comes out of one.</p>
@@ -2513,6 +2542,17 @@ function wireEvents() {
     byId("addWalletBtn").addEventListener("click", onAddWallet);
     byId("newWalletName").addEventListener("input", onWalletNameTyped);
     byId("configDone").addEventListener("click", onCloseConfig);
+    byId("configClose").addEventListener("click", onCloseConfig);
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key !== "Escape") {
+            return;
+        }
+
+        if (byId("configVeil").hidden === false) {
+            onCloseConfig();
+        }
+    });
 
     byId("openConfig").addEventListener("click", function () {
         renderConfigPanel();
