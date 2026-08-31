@@ -331,6 +331,146 @@ button, input, select {
 
 .wbar span.is-neg { background: var(--clay); }
 
+.monthpick {
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--hairline);
+    border-radius: 0;
+    -webkit-appearance: none;
+    appearance: none;
+    padding: 0 0.9rem 0.15rem 0;
+    font-size: 0.6875rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--pine);
+    cursor: pointer;
+    background-image: linear-gradient(45deg, transparent 50%, var(--pine) 50%),
+                      linear-gradient(135deg, var(--pine) 50%, transparent 50%);
+    background-position: right 4px center, right 0 center;
+    background-size: 4px 4px, 4px 4px;
+    background-repeat: no-repeat;
+}
+
+.archivebar {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding: 0.7rem 0.9rem;
+    background: var(--mint);
+    border-left: 2px solid var(--pine);
+    font-size: 0.75rem;
+    color: var(--pine);
+}
+
+.archivebar[hidden] { display: none; }
+
+/* --- spend breakdown ------------------------------------------ */
+.brow {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto 3.4rem;
+    align-items: baseline;
+    column-gap: 1rem;
+    padding: 0.65rem 0 0.5rem 0;
+    border-bottom: 1px solid var(--hairline-dim);
+}
+
+.brow .bname { font-size: 0.875rem; }
+.brow .bamt  { font-size: 0.9375rem; font-weight: 500; }
+.brow .bpct  { font-size: 0.75rem; color: var(--ink-faint); text-align: right; }
+
+.brow .bbar {
+    grid-column: 1 / -1;
+    height: 3px;
+    background: var(--hairline-dim);
+    margin-top: 0.45rem;
+    position: relative;
+}
+
+.brow .bbar span {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: var(--tile-ink);
+}
+
+/* --- day chart ------------------------------------------------- */
+.daybars {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 108px;
+    padding-top: 1.25rem;
+    border-bottom: 1px solid var(--ink);
+}
+
+.daybar {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    position: relative;
+}
+
+.daybar > span {
+    width: 100%;
+    background: var(--pine);
+    opacity: 0.82;
+    min-height: 1px;
+}
+
+.daybar.is-peak > span { background: var(--clay); opacity: 1; }
+.daybar:hover > span   { opacity: 1; }
+
+.dayaxis {
+    display: flex;
+    gap: 2px;
+    padding-top: 0.4rem;
+    font-size: 0.625rem;
+    color: var(--ink-faint);
+}
+
+.dayaxis > span {
+    flex: 1 1 0;
+    min-width: 0;
+    text-align: center;
+    overflow: hidden;
+}
+
+/* --- close month panel ----------------------------------------- */
+.carryrow {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto 6.5rem;
+    align-items: center;
+    column-gap: 0.9rem;
+    padding: 0.55rem 0;
+    border-bottom: 1px solid var(--hairline-dim);
+}
+
+.carryrow .cname  { font-size: 0.8125rem; }
+.carryrow .cclose { font-size: 0.8125rem; color: var(--ink-faint); text-align: right; }
+.carryrow .cclose.is-neg { color: var(--clay); }
+
+.carryrow input {
+    width: 100%;
+    background: var(--mint);
+    border: 1px solid var(--hairline);
+    border-radius: 2px;
+    padding: 0.3rem 0.4rem;
+    font-size: 0.8125rem;
+    text-align: right;
+}
+
+.acctcap {
+    padding: 1.1rem 0 0.35rem 0;
+    border-bottom: 1px solid var(--ink);
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 0.9375rem;
+    color: var(--pine);
+}
+
 .swatchrow {
     display: flex;
     flex-wrap: wrap;
@@ -805,6 +945,42 @@ button, input, select {
 </div>
 
 <!-- =============================================================
+     Close out the month
+     ============================================================= -->
+<div class="veil" id="closeVeil" hidden>
+  <button class="veil-close" id="closeCancel" title="Cancel" aria-label="Cancel">✕</button>
+  <div class="panel">
+    <h1>Close out the month</h1>
+    <p>
+      The current <code>log.csv</code> is copied into <code>months/</code> and kept forever.
+      A fresh log then opens with the balances below as income rows, so the new month starts
+      with whatever money actually still exists.
+    </p>
+
+    <div class="field-pair">
+      <div class="field">
+        <label for="archiveKey">Archive as</label>
+        <input id="archiveKey" type="text" placeholder="2026-08" autocapitalize="off" spellcheck="false">
+      </div>
+      <div class="vr"></div>
+      <div class="field">
+        <label for="newPeriodEnd">New month runs until</label>
+        <input id="newPeriodEnd" type="date">
+      </div>
+    </div>
+
+    <div class="sectionhead">
+      <h2>Opening balances</h2>
+      <span class="label">Closing &rarr; opening</span>
+    </div>
+    <div id="carryList"></div>
+
+    <button class="submit" id="doClose" style="margin-top:2rem">Archive and start fresh</button>
+    <p class="formnote" id="closeNote"></p>
+  </div>
+</div>
+
+<!-- =============================================================
      Main
      ============================================================= -->
 <div class="shell" id="app" hidden>
@@ -812,7 +988,9 @@ button, input, select {
   <header class="masthead">
     <div class="mark">Ledger<em>.</em></div>
     <div class="masthead-right">
+      <select class="monthpick" id="monthPick"><option value="current">This month</option></select>
       <span class="syncdot label" id="syncDot" data-state="ok"><i></i><span id="syncText">synced</span></span>
+      <button class="linkbtn" id="openClose">Close month</button>
       <button class="linkbtn" id="openConfig">Wallets</button>
       <button class="linkbtn" id="reloadBtn">Reload</button>
     </div>
@@ -820,19 +998,19 @@ button, input, select {
 
   <section class="headline">
     <div class="hcell">
-      <span class="label">Left to spend &mdash; <span id="hlAcctName">&mdash;</span></span>
+      <span class="label" id="hlLabel1">&mdash;</span>
       <div class="bignum num" id="hlAmount">0<span class="cur" id="hlCur">MYR</span></div>
       <div class="subnote" id="hlNote">&mdash;</div>
     </div>
     <div class="vr"></div>
     <div class="hcell">
-      <span class="label">Days remaining</span>
+      <span class="label" id="hlLabel2">Days remaining</span>
       <div class="midnum num" id="hlDays">&mdash;</div>
       <div class="subnote" id="hlPace">&mdash;</div>
     </div>
     <div class="vr"></div>
     <div class="hcell">
-      <span class="label">Spent today</span>
+      <span class="label" id="hlLabel3">Spent today</span>
       <div class="midnum num" id="hlToday">&mdash;</div>
       <div class="subnote" id="hlTodayNote">&mdash;</div>
     </div>
@@ -841,6 +1019,23 @@ button, input, select {
   <div class="split">
 
     <div class="col-data">
+      <div class="archivebar" id="archiveBar" hidden>
+        <span id="archiveText">Viewing an archived month &mdash; read only.</span>
+        <button class="linkbtn" id="backToCurrent">Back to this month</button>
+      </div>
+
+      <div class="sectionhead">
+        <h2>Where it went</h2>
+        <span class="label" id="breakdownTotal"></span>
+      </div>
+      <div id="breakdownList"></div>
+
+      <div class="sectionhead">
+        <h2>Day by day</h2>
+        <span class="label" id="dayPeak"></span>
+      </div>
+      <div id="dayChart"></div>
+
       <div class="sectionhead">
         <h2>Wallets</h2>
         <span class="label">Balance</span>
@@ -856,7 +1051,7 @@ button, input, select {
 
     <div class="vr"></div>
 
-    <div class="col-form">
+    <div class="col-form" id="colForm">
       <div class="tabs" role="tablist">
         <button class="tab" role="tab" data-type="spend"    aria-selected="true">Spend</button>
         <button class="tab" role="tab" data-type="income"   aria-selected="false">Income</button>
@@ -915,7 +1110,10 @@ const state = {
     configSha:  null,
     pending:    [],
     activeType: "spend",
-    busy:       false
+    busy:       false,
+    months:     [],
+    viewMonth:  "current",
+    viewRows:   []
 };
 
 let pickedColour = -1;
@@ -1496,6 +1694,39 @@ async function drainInbox() {
    6.  Config lookups
    =============================================================== */
 
+/* The ledger the screen is currently showing. The live log when the month
+   selector says "current", otherwise a loaded archive. Anything that writes
+   must use state.rows directly — never this. */
+function activeRows() {
+    if (state.viewMonth === "current") {
+        return state.rows;
+    }
+
+    return state.viewRows;
+}
+
+function isArchiveView() {
+    return state.viewMonth !== "current";
+}
+
+function monthLabel(key) {
+    const names = ["January", "February", "March", "April", "May", "June",
+                   "July", "August", "September", "October", "November", "December"];
+
+    const year = key.slice(0, 4);
+    const monthIndex = parseInt(key.slice(5, 7), 10) - 1;
+
+    if (monthIndex < 0 || monthIndex > 11) {
+        return key;
+    }
+
+    return names[monthIndex] + " " + year;
+}
+
+function monthKeyOf(dateText) {
+    return dateText.slice(0, 7);
+}
+
 function findAccount(accountId) {
     for (let i = 0; i < state.config.accounts.length; i++) {
         if (state.config.accounts[i].id === accountId) {
@@ -1720,7 +1951,7 @@ function applyRowToBalances(row, balances) {
     }
 }
 
-function computeWalletBalances() {
+function computeWalletBalances(rows) {
     const balances = {};
 
     for (let i = 0; i < state.config.wallets.length; i++) {
@@ -1728,8 +1959,8 @@ function computeWalletBalances() {
         balances[wallet.id] = 0;
     }
 
-    for (let i = 0; i < state.rows.length; i++) {
-        const row = state.rows[i];
+    for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
         applyRowToBalances(row, balances);
     }
 
@@ -1748,12 +1979,12 @@ function sumAccountBalance(accountId, balances) {
     return total;
 }
 
-function sumSpentToday(accountId) {
+function sumSpentToday(accountId, rows) {
     const todayPrefix = localTimestamp(new Date()).slice(0, 10);
     let total = 0;
 
-    for (let i = 0; i < state.rows.length; i++) {
-        const row = state.rows[i];
+    for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
 
         if (row.type !== "spend") {
             continue;
@@ -1778,12 +2009,58 @@ function sumSpentToday(accountId) {
 }
 
 
+/* Everything the breakdown, the day chart and the archive headline need,
+   gathered in a single pass so they cannot disagree with each other. */
+function spendStats(rows, accountId) {
+    const byWallet = {};
+    const byDay = {};
+    let total = 0;
+    let count = 0;
+
+    for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+
+        if (row.type !== "spend") {
+            continue;
+        }
+
+        if (row.account !== accountId) {
+            continue;
+        }
+
+        const amount = parseFloat(row.amount);
+
+        if (isNaN(amount) === true) {
+            continue;
+        }
+
+        const day = row.timestamp.slice(0, 10);
+
+        byWallet[row.wallet] = (byWallet[row.wallet] || 0) + amount;
+        byDay[day] = (byDay[day] || 0) + amount;
+        total += amount;
+        count += 1;
+    }
+
+    const dayKeys = Object.keys(byDay);
+    dayKeys.sort();
+
+    return {
+        total: total,
+        count: count,
+        byWallet: byWallet,
+        byDay: byDay,
+        dayKeys: dayKeys,
+        activeDays: dayKeys.length
+    };
+}
+
+
 /* ===============================================================
    8.  Rendering
    =============================================================== */
 
 function renderHeadline() {
-    const balances = computeWalletBalances();
     const accountId = state.config.period.primaryAccount;
     const account = findAccount(accountId);
 
@@ -1791,9 +2068,17 @@ function renderHeadline() {
         return;
     }
 
+    if (isArchiveView() === true) {
+        renderArchiveHeadline(account);
+        return;
+    }
+
+    const balances = computeWalletBalances(state.rows);
     const remaining = sumAccountBalance(accountId, balances);
 
-    byId("hlAcctName").textContent = account.name;
+    byId("hlLabel1").textContent = "Left to spend — " + account.name;
+    byId("hlLabel2").textContent = "Days remaining";
+    byId("hlLabel3").textContent = "Spent today";
     byId("hlCur").textContent = account.currency;
     byId("hlAmount").childNodes[0].nodeValue = formatAmount(remaining, account.currency);
 
@@ -1817,13 +2102,236 @@ function renderHeadline() {
 
     byId("hlNote").textContent = "Across " + walletsOfAccount(accountId).length + " wallets, through " + state.config.period.end;
 
-    const spentToday = sumSpentToday(accountId);
+    const spentToday = sumSpentToday(accountId, state.rows);
     byId("hlToday").textContent = formatAmount(spentToday, account.currency);
     byId("hlTodayNote").textContent = account.currency + " logged since midnight";
 }
 
+function renderArchiveHeadline(account) {
+    const rows = activeRows();
+    const stats = spendStats(rows, account.id);
+
+    byId("hlLabel1").textContent = "Total spent — " + monthLabel(state.viewMonth);
+    byId("hlCur").textContent = account.currency;
+    byId("hlAmount").childNodes[0].nodeValue = formatAmount(stats.total, account.currency);
+    byId("hlAmount").classList.remove("is-neg");
+    byId("hlNote").textContent = rows.length + " entries logged in " + account.name;
+
+    byId("hlLabel2").textContent = "Purchases";
+    byId("hlDays").textContent = String(stats.count);
+
+    if (stats.count > 0) {
+        byId("hlPace").textContent = formatAmount(stats.total / stats.count, account.currency) + " " + account.currency + " average size";
+    } else {
+        byId("hlPace").textContent = "Nothing recorded";
+    }
+
+    byId("hlLabel3").textContent = "Per active day";
+
+    if (stats.activeDays > 0) {
+        byId("hlToday").textContent = formatAmount(stats.total / stats.activeDays, account.currency);
+        byId("hlTodayNote").textContent = "across " + stats.activeDays + " days with spending";
+    } else {
+        byId("hlToday").textContent = "0";
+        byId("hlTodayNote").textContent = "no spending days";
+    }
+}
+
+function renderBreakdown() {
+    const account = findAccount(state.config.period.primaryAccount);
+    const container = byId("breakdownList");
+
+    if (account === null) {
+        container.innerHTML = "";
+        return;
+    }
+
+    const stats = spendStats(activeRows(), account.id);
+
+    byId("breakdownTotal").textContent = formatAmount(stats.total, account.currency) + " " + account.currency;
+
+    if (stats.total <= 0) {
+        container.innerHTML = '<p class="empty">No spending recorded in this month yet.</p>';
+        return;
+    }
+
+    const ranked = [];
+
+    for (let i = 0; i < state.config.wallets.length; i++) {
+        const wallet = state.config.wallets[i];
+        const amount = stats.byWallet[wallet.id];
+
+        if (amount === undefined || amount <= 0) {
+            continue;
+        }
+
+        ranked.push({ wallet: wallet, amount: amount });
+    }
+
+    ranked.sort(function (left, right) {
+        return right.amount - left.amount;
+    });
+
+    let largest = 0;
+
+    for (let i = 0; i < ranked.length; i++) {
+        if (ranked[i].amount > largest) {
+            largest = ranked[i].amount;
+        }
+    }
+
+    let html = "";
+
+    for (let i = 0; i < ranked.length; i++) {
+        const entry = ranked[i];
+        const palette = paletteFor(entry.wallet);
+        const share = (entry.amount / stats.total) * 100;
+        const width = (entry.amount / largest) * 100;
+
+        html += '<div class="brow" style="--tile-ink:' + palette.ink + '">';
+        html += '<span class="bname">' + escapeHtml(entry.wallet.name) + "</span>";
+        html += '<span class="bamt num">' + formatAmount(entry.amount, account.currency) + "</span>";
+        html += '<span class="bpct num">' + share.toFixed(1) + "%</span>";
+        html += '<div class="bbar"><span style="width:' + width.toFixed(1) + '%"></span></div>';
+        html += "</div>";
+    }
+
+    container.innerHTML = html;
+}
+
+function addDays(dateText, offset) {
+    const year = parseInt(dateText.slice(0, 4), 10);
+    const month = parseInt(dateText.slice(5, 7), 10);
+    const day = parseInt(dateText.slice(8, 10), 10);
+
+    const moved = new Date(year, month - 1, day + offset);
+
+    const movedYear = moved.getFullYear();
+    const movedMonth = moved.getMonth() + 1;
+    const movedDay = moved.getDate();
+
+    const paddedMonth = movedMonth < 10 ? "0" + movedMonth : String(movedMonth);
+    const paddedDay = movedDay < 10 ? "0" + movedDay : String(movedDay);
+
+    return movedYear + "-" + paddedMonth + "-" + paddedDay;
+}
+
+function daysBetweenKeys(fromKey, toKey) {
+    const from = new Date(fromKey + "T00:00:00");
+    const to = new Date(toKey + "T00:00:00");
+    const msPerDay = 24 * 60 * 60 * 1000;
+
+    return Math.round((to.getTime() - from.getTime()) / msPerDay);
+}
+
+/* The chart must cover exactly the days the breakdown counted, or the two
+   disagree. Span the selected rows end to end; for the live month, run on to
+   the period end so the days still ahead show as empty slots. */
+function monthDayKeys() {
+    const stats = spendStats(activeRows(), state.config.period.primaryAccount);
+
+    if (stats.dayKeys.length === 0) {
+        return [];
+    }
+
+    let first = stats.dayKeys[0];
+    let last = stats.dayKeys[stats.dayKeys.length - 1];
+
+    if (isArchiveView() === false) {
+        const periodEnd = state.config.period.end;
+
+        if (periodEnd !== undefined && periodEnd > last) {
+            last = periodEnd;
+        }
+    }
+
+    let span = daysBetweenKeys(first, last);
+
+    if (span < 0) {
+        return [first];
+    }
+
+    /* Guard against a stray timestamp producing a chart with thousands of bars. */
+    if (span > 120) {
+        first = addDays(last, -120);
+        span = 120;
+    }
+
+    const keys = [];
+
+    for (let i = 0; i <= span; i++) {
+        keys.push(addDays(first, i));
+    }
+
+    return keys;
+}
+
+function renderDayChart() {
+    const account = findAccount(state.config.period.primaryAccount);
+    const container = byId("dayChart");
+
+    if (account === null) {
+        container.innerHTML = "";
+        return;
+    }
+
+    const stats = spendStats(activeRows(), account.id);
+    const keys = monthDayKeys();
+
+    let peak = 0;
+    let peakKey = "";
+
+    for (let i = 0; i < keys.length; i++) {
+        const value = stats.byDay[keys[i]] || 0;
+
+        if (value > peak) {
+            peak = value;
+            peakKey = keys[i];
+        }
+    }
+
+    if (peak <= 0) {
+        byId("dayPeak").textContent = "";
+        container.innerHTML = '<p class="empty">Nothing to chart yet.</p>';
+        return;
+    }
+
+    byId("dayPeak").textContent = "peak " + formatAmount(peak, account.currency) + " on " + peakKey.slice(8) + "/" + peakKey.slice(5, 7);
+
+    let bars = '<div class="daybars">';
+    let axis = '<div class="dayaxis">';
+
+    for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
+        const value = stats.byDay[key] || 0;
+        const height = (value / peak) * 100;
+        const dayNumber = parseInt(key.slice(8), 10);
+
+        let peakClass = "";
+        if (key === peakKey) {
+            peakClass = " is-peak";
+        }
+
+        const title = key + " · " + formatAmount(value, account.currency) + " " + account.currency;
+
+        bars += '<div class="daybar' + peakClass + '" title="' + title + '">';
+        bars += '<span style="height:' + height.toFixed(1) + '%"></span></div>';
+
+        if (dayNumber === 1 || dayNumber % 5 === 0) {
+            axis += "<span>" + dayNumber + "</span>";
+        } else {
+            axis += "<span></span>";
+        }
+    }
+
+    bars += "</div>";
+    axis += "</div>";
+
+    container.innerHTML = bars + axis;
+}
+
 function renderWallets() {
-    const balances = computeWalletBalances();
+    const balances = computeWalletBalances(activeRows());
     const container = byId("walletList");
     let html = "";
 
@@ -1906,7 +2414,8 @@ function describeRow(row) {
 
 function renderTransactions() {
     const container = byId("txList");
-    const total = state.rows.length;
+    const rows = activeRows();
+    const total = rows.length;
     let html = "";
 
     byId("txCount").textContent = total + " entries";
@@ -1919,7 +2428,7 @@ function renderTransactions() {
     const firstIndex = Math.max(0, total - 80);
 
     for (let i = total - 1; i >= firstIndex; i--) {
-        const row = state.rows[i];
+        const row = rows[i];
         const amount = parseFloat(row.amount);
         const dayPart = row.timestamp.slice(5, 10).replace("-", "/");
         const timePart = row.timestamp.slice(11, 16);
@@ -1962,7 +2471,12 @@ function renderTransactions() {
         html += '<span class="meta">' + escapeHtml(metaBits) + "</span>";
         html += "</span>";
         html += '<span class="amt num' + amountClass + '">' + prefix + formatAmount(amount, row.currency) + " " + escapeHtml(row.currency);
-        html += '<button class="kill" data-index="' + i + '" title="Delete">✕</button></span>';
+
+        if (isArchiveView() === false) {
+            html += '<button class="kill" data-index="' + i + '" title="Delete">✕</button>';
+        }
+
+        html += "</span>";
         html += "</div>";
     }
 
@@ -1990,8 +2504,37 @@ function renderMerchantList() {
     datalist.innerHTML = html;
 }
 
+function renderMonthPicker() {
+    const picker = byId("monthPick");
+    let html = '<option value="current">This month</option>';
+
+    for (let i = 0; i < state.months.length; i++) {
+        const key = state.months[i];
+        html += '<option value="' + escapeHtml(key) + '">' + escapeHtml(monthLabel(key)) + "</option>";
+    }
+
+    picker.innerHTML = html;
+    picker.value = state.viewMonth;
+}
+
+function renderViewMode() {
+    const archive = isArchiveView();
+
+    byId("archiveBar").hidden = archive === false;
+    byId("colForm").hidden = archive;
+    byId("openClose").hidden = archive;
+
+    if (archive === true) {
+        byId("archiveText").textContent = monthLabel(state.viewMonth) + " — archived and read only.";
+    }
+}
+
 function renderAll() {
+    renderMonthPicker();
+    renderViewMode();
     renderHeadline();
+    renderBreakdown();
+    renderDayChart();
     renderWallets();
     renderTransactions();
     renderMerchantList();
@@ -2406,7 +2949,7 @@ async function pushConfig() {
 }
 
 function buildSummary() {
-    const balances = computeWalletBalances();
+    const balances = computeWalletBalances(state.rows);
     const endDate = new Date(state.config.period.end + "T23:59:59");
     const daysLeft = daysBetween(new Date(), endDate) + 1;
 
@@ -2462,6 +3005,342 @@ async function pushSummary() {
         await githubWrite(publicRepo, "summary.json", text, existing.sha, "update summary");
     } catch (error) {
         /* The widget feed is best-effort; never block logging on it. */
+    }
+}
+
+
+/* ===============================================================
+   10b.  Months — archive listing, selection, and closing out
+   =============================================================== */
+
+function roundFor(value, currency) {
+    const factor = Math.pow(10, decimalsFor(currency));
+    return Math.round(value * factor) / factor;
+}
+
+async function loadMonths() {
+    const entries = await githubList(state.settings.repo, "months");
+    const keys = [];
+
+    for (let i = 0; i < entries.length; i++) {
+        const entry = entries[i];
+
+        if (entry.type !== "file") {
+            continue;
+        }
+
+        if (entry.name.endsWith(".csv") === false) {
+            continue;
+        }
+
+        keys.push(entry.name.slice(0, entry.name.length - 4));
+    }
+
+    keys.sort();
+    keys.reverse();
+    state.months = keys;
+}
+
+async function selectMonth(key) {
+    if (key === "current") {
+        state.viewMonth = "current";
+        state.viewRows = [];
+        renderAll();
+        return;
+    }
+
+    renderSyncState("busy", "loading " + key);
+
+    try {
+        const file = await githubRead(state.settings.repo, "months/" + key + ".csv");
+
+        if (file.text === null) {
+            state.viewRows = [];
+        } else {
+            state.viewRows = parseCsv(file.text);
+        }
+
+        state.viewMonth = key;
+        renderAll();
+        renderSyncState("ok", "archive");
+    } catch (error) {
+        renderSyncState("dirty", "load failed");
+    }
+}
+
+/* Wallets that closed negative are an artefact of overspending an envelope,
+   not money that vanished. Zero them and take the shortfall out of the
+   largest positive wallet in the same account, so the account total carries
+   across intact. Every figure stays editable before anything is written. */
+function computeCarryDefaults() {
+    const balances = computeWalletBalances(state.rows);
+    const opening = {};
+
+    for (let a = 0; a < state.config.accounts.length; a++) {
+        const account = state.config.accounts[a];
+        const wallets = walletsOfAccount(account.id);
+        let deficit = 0;
+        let largestId = null;
+        let largestValue = 0;
+
+        for (let i = 0; i < wallets.length; i++) {
+            const walletId = wallets[i].id;
+            const balance = balances[walletId] || 0;
+
+            if (balance < 0) {
+                deficit += -balance;
+                opening[walletId] = 0;
+                continue;
+            }
+
+            opening[walletId] = roundFor(balance, account.currency);
+
+            if (balance > largestValue) {
+                largestValue = balance;
+                largestId = walletId;
+            }
+        }
+
+        if (deficit > 0 && largestId !== null) {
+            opening[largestId] = roundFor(largestValue - deficit, account.currency);
+        }
+    }
+
+    return opening;
+}
+
+function defaultArchiveKey() {
+    if (state.rows.length > 0) {
+        return monthKeyOf(state.rows[state.rows.length - 1].timestamp);
+    }
+
+    return monthKeyOf(state.config.period.end);
+}
+
+function defaultNextPeriodEnd() {
+    const today = new Date();
+    const endOfThisMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+    const year = endOfThisMonth.getFullYear();
+    const month = endOfThisMonth.getMonth() + 1;
+    const day = endOfThisMonth.getDate();
+
+    const paddedMonth = month < 10 ? "0" + month : String(month);
+    const paddedDay = day < 10 ? "0" + day : String(day);
+
+    return year + "-" + paddedMonth + "-" + paddedDay;
+}
+
+function renderClosePanel() {
+    const balances = computeWalletBalances(state.rows);
+    const defaults = computeCarryDefaults();
+
+    byId("archiveKey").value = defaultArchiveKey();
+    byId("newPeriodEnd").value = defaultNextPeriodEnd();
+    byId("closeNote").textContent = "";
+    byId("closeNote").classList.remove("is-err");
+
+    let html = "";
+
+    for (let a = 0; a < state.config.accounts.length; a++) {
+        const account = state.config.accounts[a];
+        const wallets = walletsOfAccount(account.id);
+
+        if (wallets.length === 0) {
+            continue;
+        }
+
+        html += '<div class="acctcap">' + escapeHtml(account.name) + " · " + escapeHtml(account.currency) + "</div>";
+
+        for (let i = 0; i < wallets.length; i++) {
+            const wallet = wallets[i];
+            const closing = balances[wallet.id] || 0;
+            const opening = defaults[wallet.id] || 0;
+
+            let negativeClass = "";
+            if (closing < 0) {
+                negativeClass = " is-neg";
+            }
+
+            html += '<div class="carryrow">';
+            html += '<span class="cname">' + escapeHtml(wallet.name) + "</span>";
+            html += '<span class="cclose num' + negativeClass + '">' + formatAmount(closing, account.currency) + "</span>";
+            html += '<input class="num" type="text" inputmode="decimal" data-wallet="' + escapeHtml(wallet.id) + '" value="' + opening + '">';
+            html += "</div>";
+        }
+    }
+
+    byId("carryList").innerHTML = html;
+}
+
+function readOpeningInputs() {
+    const inputs = byId("carryList").querySelectorAll("input[data-wallet]");
+    const opening = {};
+
+    for (let i = 0; i < inputs.length; i++) {
+        const input = inputs[i];
+        const walletId = input.getAttribute("data-wallet");
+        const cleaned = input.value.replace(/[^0-9.\-]/g, "");
+        const value = parseFloat(cleaned);
+
+        if (isNaN(value) === true) {
+            opening[walletId] = 0;
+        } else {
+            opening[walletId] = value;
+        }
+    }
+
+    return opening;
+}
+
+function buildOpeningRows(opening, archiveKey, startDate) {
+    const rows = [];
+
+    for (let i = 0; i < state.config.wallets.length; i++) {
+        const wallet = state.config.wallets[i];
+        const value = opening[wallet.id];
+
+        if (value === undefined || value === 0) {
+            continue;
+        }
+
+        const row = blankRow();
+        row.timestamp = startDate + "T00:00";
+        row.type = "income";
+        row.amount = String(value);
+        row.currency = currencyOfWallet(wallet.id);
+        row.account = wallet.account;
+        row.wallet = wallet.id;
+        row.merchant = "opening balance";
+        row.note = "carried from " + archiveKey;
+        row.id = "open-" + archiveKey + "-" + wallet.id;
+
+        rows.push(row);
+    }
+
+    return rows;
+}
+
+async function writeLogDirect(text, message) {
+    let result = await githubWrite(state.settings.repo, LOG_PATH, text, state.logSha, message);
+
+    if (result.conflict === true) {
+        const fresh = await githubRead(state.settings.repo, LOG_PATH);
+        state.logSha = fresh.sha;
+        result = await githubWrite(state.settings.repo, LOG_PATH, text, state.logSha, message + " (retry)");
+    }
+
+    if (result.ok === true) {
+        state.logSha = result.sha;
+        return true;
+    }
+
+    return false;
+}
+
+async function onCloseMonth() {
+    if (state.busy === true) {
+        return;
+    }
+
+    const note = byId("closeNote");
+    const archiveKey = readText("archiveKey");
+    const newEnd = readText("newPeriodEnd");
+
+    note.classList.remove("is-err");
+
+    if (/^\d{4}-\d{2}$/.test(archiveKey) === false) {
+        note.textContent = "Archive name must look like 2026-08.";
+        note.classList.add("is-err");
+        return;
+    }
+
+    if (newEnd === "") {
+        note.textContent = "Set the date the new month runs until.";
+        note.classList.add("is-err");
+        return;
+    }
+
+    if (state.pending.length > 0) {
+        note.textContent = "There are unsynced entries. Reload first, then close the month.";
+        note.classList.add("is-err");
+        return;
+    }
+
+    state.busy = true;
+    const archivePath = "months/" + archiveKey + ".csv";
+
+    try {
+        /* Refuse to overwrite an archive that already exists. */
+        const existing = await githubRead(state.settings.repo, archivePath);
+
+        if (existing.text !== null) {
+            note.textContent = archiveKey + " is already archived. Pick another name.";
+            note.classList.add("is-err");
+            state.busy = false;
+            return;
+        }
+
+        note.textContent = "Archiving…";
+
+        /* Write the archive first and confirm it landed. Only then is it safe
+           to replace the live log. */
+        const archiveWrite = await githubWrite(state.settings.repo, archivePath,
+                                               serialiseCsv(state.rows), null,
+                                               "archive " + archiveKey);
+
+        if (archiveWrite.ok !== true) {
+            note.textContent = "Could not write the archive. Nothing was changed.";
+            note.classList.add("is-err");
+            state.busy = false;
+            return;
+        }
+
+        const verify = await githubRead(state.settings.repo, archivePath);
+
+        if (verify.text === null) {
+            note.textContent = "Archive could not be read back. Nothing was changed.";
+            note.classList.add("is-err");
+            state.busy = false;
+            return;
+        }
+
+        note.textContent = "Archived. Opening the new month…";
+
+        const opening = readOpeningInputs();
+        const startDate = localTimestamp(new Date()).slice(0, 10);
+        const openingRows = buildOpeningRows(opening, archiveKey, startDate);
+
+        state.rows = openingRows;
+
+        const written = await writeLogDirect(serialiseCsv(state.rows),
+                                             "start " + monthKeyOf(startDate) + " after " + archiveKey);
+
+        if (written === false) {
+            note.textContent = "Archive saved, but the new log failed to write. Reload and try again.";
+            note.classList.add("is-err");
+            state.busy = false;
+            return;
+        }
+
+        state.config.period.start = startDate;
+        state.config.period.end = newEnd;
+        await pushConfig();
+
+        await loadMonths();
+        state.viewMonth = "current";
+        state.viewRows = [];
+
+        state.busy = false;
+        byId("closeVeil").hidden = true;
+        renderAll();
+        renderSyncState("ok", "synced");
+        await pushSummary();
+
+    } catch (error) {
+        note.textContent = "Failed: " + error.message;
+        note.classList.add("is-err");
+        state.busy = false;
     }
 }
 
@@ -2710,6 +3589,8 @@ async function loadEverything() {
         state.rows.push(state.pending[i]);
     }
 
+    await loadMonths();
+
     buildForm(state.activeType);
     renderAll();
 
@@ -2794,12 +3675,36 @@ function wireEvents() {
 
         if (byId("configVeil").hidden === false) {
             onCloseConfig();
+            return;
+        }
+
+        if (byId("closeVeil").hidden === false) {
+            byId("closeVeil").hidden = true;
         }
     });
 
     byId("openConfig").addEventListener("click", function () {
         renderConfigPanel();
         byId("configVeil").hidden = false;
+    });
+
+    byId("openClose").addEventListener("click", function () {
+        renderClosePanel();
+        byId("closeVeil").hidden = false;
+    });
+
+    byId("closeCancel").addEventListener("click", function () {
+        byId("closeVeil").hidden = true;
+    });
+
+    byId("doClose").addEventListener("click", onCloseMonth);
+
+    byId("monthPick").addEventListener("change", function (event) {
+        selectMonth(event.currentTarget.value);
+    });
+
+    byId("backToCurrent").addEventListener("click", function () {
+        selectMonth("current");
     });
 
     byId("reloadBtn").addEventListener("click", function () {
