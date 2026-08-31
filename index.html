@@ -331,6 +331,42 @@ button, input, select {
 
 .wbar span.is-neg { background: var(--clay); }
 
+.acctrow {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--hairline-dim);
+}
+
+.acctrow .aname {
+    font-family: var(--serif);
+    font-size: 1rem;
+    font-style: italic;
+    color: var(--ink-muted);
+}
+
+.acctrow.is-primary .aname { color: var(--pine); }
+
+.acctrow .abal {
+    font-size: 1.0625rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+}
+
+.acctrow.is-primary .abal { font-size: 1.25rem; }
+
+.acctrow .abal em {
+    font-style: normal;
+    font-size: 0.6875rem;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+}
+
+.acctrow .abal.is-neg { color: var(--clay); }
+
 .monthpick {
     background: transparent;
     border: 0;
@@ -882,8 +918,8 @@ button, input, select {
 <div class="veil" id="configVeil" hidden>
   <button class="veil-close" id="configClose" title="Save and close" aria-label="Save and close">✕</button>
   <div class="panel">
-    <h1>Accounts &amp; wallets</h1>
-    <p>Wallets are envelopes inside an account. They double as your categories &mdash; a purchase comes out of one.</p>
+    <h1>Accounts &amp; tags</h1>
+    <p>Tags describe what a purchase was. They do not hold their own money &mdash; the account does. A tag belongs to an account only so it knows which currency to use.</p>
 
     <div class="sectionhead"><h2>Add an account</h2></div>
     <div class="field-pair">
@@ -900,11 +936,11 @@ button, input, select {
     <button class="submit" id="addAcctBtn">Add account</button>
     <div class="chiprow" id="acctChips"></div>
 
-    <div class="sectionhead"><h2>Add a wallet</h2></div>
+    <div class="sectionhead"><h2>Add a tag</h2></div>
     <div class="field-pair">
       <div class="field">
         <label for="newWalletName">Name</label>
-        <input id="newWalletName" type="text" placeholder="Gifts">
+        <input id="newWalletName" type="text" placeholder="Relationship">
       </div>
       <div class="vr"></div>
       <div class="field">
@@ -923,20 +959,34 @@ button, input, select {
         <div class="swatchrow" id="colourPicker"></div>
       </div>
     </div>
-    <button class="submit" id="addWalletBtn">Add wallet</button>
+    <button class="submit" id="addWalletBtn">Add tag</button>
     <div class="chiprow" id="walletChips"></div>
 
-    <div class="sectionhead"><h2>Period</h2></div>
+    <div class="sectionhead"><h2>Rhythm</h2></div>
     <div class="field-pair">
       <div class="field">
-        <label for="periodEnd">Runs until</label>
-        <input id="periodEnd" type="date">
+        <label for="weekStart">Week resets on</label>
+        <select id="weekStart">
+          <option value="1">Monday</option>
+          <option value="2">Tuesday</option>
+          <option value="3">Wednesday</option>
+          <option value="4">Thursday</option>
+          <option value="5">Friday</option>
+          <option value="6">Saturday</option>
+          <option value="0">Sunday</option>
+        </select>
       </div>
       <div class="vr"></div>
       <div class="field">
         <label for="periodAcct">Headline account</label>
         <select id="periodAcct"></select>
       </div>
+    </div>
+    <p class="formnote">The daily rate is this account's balance divided by the days left before the reset.</p>
+
+    <div class="field" style="margin-top:1rem">
+      <label for="periodEnd">Archive period ends</label>
+      <input id="periodEnd" type="date">
     </div>
 
     <button class="submit" id="configDone" style="margin-top:2.5rem">Save &amp; close</button>
@@ -991,7 +1041,7 @@ button, input, select {
       <select class="monthpick" id="monthPick"><option value="current">This month</option></select>
       <span class="syncdot label" id="syncDot" data-state="ok"><i></i><span id="syncText">synced</span></span>
       <button class="linkbtn" id="openClose">Close month</button>
-      <button class="linkbtn" id="openConfig">Wallets</button>
+      <button class="linkbtn" id="openConfig">Tags</button>
       <button class="linkbtn" id="reloadBtn">Reload</button>
     </div>
   </header>
@@ -1037,7 +1087,7 @@ button, input, select {
       <div id="dayChart"></div>
 
       <div class="sectionhead">
-        <h2>Wallets</h2>
+        <h2>Accounts</h2>
         <span class="label">Balance</span>
       </div>
       <div id="walletList"></div>
@@ -1056,7 +1106,6 @@ button, input, select {
         <button class="tab" role="tab" data-type="spend"    aria-selected="true">Spend</button>
         <button class="tab" role="tab" data-type="income"   aria-selected="false">Income</button>
         <button class="tab" role="tab" data-type="transfer" aria-selected="false">Top&nbsp;up</button>
-        <button class="tab" role="tab" data-type="move"     aria-selected="false">Move</button>
       </div>
 
       <form id="entryForm" autocomplete="off">
@@ -1177,6 +1226,28 @@ function localTimestamp(date) {
     const minute = String(date.getMinutes()).padStart(2, "0");
 
     return year + "-" + month + "-" + day + "T" + hour + ":" + minute;
+}
+
+const WEEKDAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+function weekStartDay() {
+    const configured = state.config.period.weekStart;
+
+    if (typeof configured !== "number") {
+        return 1;
+    }
+
+    return configured;
+}
+
+/* Days left in the current week, counting today. Pure arithmetic on the
+   device clock — no network call, and identical on phone and laptop. */
+function daysLeftInWeek() {
+    const startDay = weekStartDay();
+    const todayDay = new Date().getDay();
+    const elapsed = (todayDay - startDay + 7) % 7;
+
+    return 7 - elapsed;
 }
 
 function daysBetween(fromDate, toDate) {
@@ -2075,36 +2146,56 @@ function renderHeadline() {
 
     const balances = computeWalletBalances(state.rows);
     const remaining = sumAccountBalance(accountId, balances);
+    const daysLeft = daysLeftInWeek();
+    const perDay = remaining / daysLeft;
 
-    byId("hlLabel1").textContent = "Left to spend — " + account.name;
-    byId("hlLabel2").textContent = "Days remaining";
-    byId("hlLabel3").textContent = "Spent today";
+    /* The rate is the headline. The pot it comes from is deliberately the
+       smaller number — a total invites one big decision, a rate invites
+       a small one every day. */
+    byId("hlLabel1").textContent = "Can spend per day";
     byId("hlCur").textContent = account.currency;
-    byId("hlAmount").childNodes[0].nodeValue = formatAmount(remaining, account.currency);
+    byId("hlAmount").childNodes[0].nodeValue = formatAmount(perDay, account.currency);
 
-    if (remaining < 0) {
+    if (perDay < 0) {
         byId("hlAmount").classList.add("is-neg");
     } else {
         byId("hlAmount").classList.remove("is-neg");
     }
 
-    const endDate = new Date(state.config.period.end + "T23:59:59");
-    const daysLeft = daysBetween(new Date(), endDate) + 1;
+    const resetName = WEEKDAY_NAMES[weekStartDay()];
 
-    if (daysLeft > 0) {
-        byId("hlDays").textContent = String(daysLeft);
-        const perDay = remaining / daysLeft;
-        byId("hlPace").textContent = formatAmount(perDay, account.currency) + " " + account.currency + " per day at this rate";
+    if (daysLeft === 1) {
+        byId("hlNote").textContent = "Last day of the week — resets " + resetName;
     } else {
-        byId("hlDays").textContent = "0";
-        byId("hlPace").textContent = "Period has ended — set a new one under Wallets.";
+        byId("hlNote").textContent = daysLeft + " days until " + resetName;
     }
 
-    byId("hlNote").textContent = "Across " + walletsOfAccount(accountId).length + " wallets, through " + state.config.period.end;
+    byId("hlLabel2").textContent = "Left in " + account.name;
+    byId("hlDays").textContent = formatAmount(remaining, account.currency);
 
+    if (remaining < 0) {
+        byId("hlDays").classList.add("is-neg");
+    } else {
+        byId("hlDays").classList.remove("is-neg");
+    }
+
+    byId("hlPace").textContent = account.currency + " across every tag";
+
+    byId("hlLabel3").textContent = "Spent today";
     const spentToday = sumSpentToday(accountId, state.rows);
     byId("hlToday").textContent = formatAmount(spentToday, account.currency);
-    byId("hlTodayNote").textContent = account.currency + " logged since midnight";
+
+    if (perDay > 0) {
+        byId("hlTodayNote").textContent = "of " + formatAmount(perDay, account.currency) + " for today";
+    } else {
+        byId("hlTodayNote").textContent = account.currency + " logged since midnight";
+    }
+
+    if (spentToday > perDay && perDay > 0) {
+        byId("hlToday").classList.add("is-neg");
+    } else {
+        byId("hlToday").classList.remove("is-neg");
+    }
 }
 
 function renderArchiveHeadline(account) {
@@ -2115,9 +2206,11 @@ function renderArchiveHeadline(account) {
     byId("hlCur").textContent = account.currency;
     byId("hlAmount").childNodes[0].nodeValue = formatAmount(stats.total, account.currency);
     byId("hlAmount").classList.remove("is-neg");
+    byId("hlToday").classList.remove("is-neg");
     byId("hlNote").textContent = rows.length + " entries logged in " + account.name;
 
     byId("hlLabel2").textContent = "Purchases";
+    byId("hlDays").classList.remove("is-neg");
     byId("hlDays").textContent = String(stats.count);
 
     if (stats.count > 0) {
@@ -2335,6 +2428,8 @@ function renderWallets() {
     const container = byId("walletList");
     let html = "";
 
+    /* Tags no longer hold their own pots, so per-tag balances would be
+       meaningless. What is real is how much money each account holds. */
     for (let a = 0; a < state.config.accounts.length; a++) {
         const account = state.config.accounts[a];
         const wallets = walletsOfAccount(account.id);
@@ -2343,52 +2438,28 @@ function renderWallets() {
             continue;
         }
 
-        const accountTotal = sumAccountBalance(account.id, balances);
+        const total = sumAccountBalance(account.id, balances);
+        const isPrimary = account.id === state.config.period.primaryAccount;
 
-        let largest = 0;
-        for (let w = 0; w < wallets.length; w++) {
-            const value = Math.abs(balances[wallets[w].id] || 0);
-            if (value > largest) {
-                largest = value;
-            }
+        let rowClass = "acctrow";
+        if (isPrimary === true) {
+            rowClass += " is-primary";
         }
 
-        html += '<div class="acct-band">';
-        html += '<span class="name">' + escapeHtml(account.name) + '</span>';
-        html += '<span class="total num">' + formatAmount(accountTotal, account.currency) + " " + escapeHtml(account.currency) + "</span>";
+        let balanceClass = "abal num";
+        if (total < 0) {
+            balanceClass += " is-neg";
+        }
+
+        html += '<div class="' + rowClass + '">';
+        html += '<span class="aname">' + escapeHtml(account.name) + "</span>";
+        html += '<span class="' + balanceClass + '">' + formatAmount(total, account.currency);
+        html += ' <em>' + escapeHtml(account.currency) + "</em></span>";
         html += "</div>";
-
-        for (let w = 0; w < wallets.length; w++) {
-            const wallet = wallets[w];
-            const balance = balances[wallet.id] || 0;
-            const palette = paletteFor(wallet);
-
-            let widthPercent = 0;
-            if (largest > 0) {
-                widthPercent = (Math.abs(balance) / largest) * 100;
-            }
-
-            let negativeClass = "";
-            if (balance < 0) {
-                negativeClass = " is-neg";
-            }
-
-            let rowStyle = "--tile-ink:" + palette.ink + ";";
-            rowStyle += "--tile-fill:" + palette.fill + ";";
-            rowStyle += "--tile-line:" + palette.line + ";";
-            rowStyle += "--row-tint:" + palette.fill + ";";
-
-            html += '<div class="wrow" style="' + rowStyle + '">';
-            html += '<span class="wtile">' + iconSvgHtml(wallet.icon) + "</span>";
-            html += '<span class="wname">' + escapeHtml(wallet.name) + "</span>";
-            html += '<span class="wbal num' + negativeClass + '">' + formatAmount(balance, account.currency) + "</span>";
-            html += '<div class="wbar"><span class="' + negativeClass.trim() + '" style="width:' + widthPercent.toFixed(1) + '%"></span></div>';
-            html += "</div>";
-        }
     }
 
     if (html.length === 0) {
-        html = '<p class="empty">No wallets yet. Add some under <strong>Wallets</strong>.</p>';
+        html = '<p class="empty">No accounts yet. Add some under <strong>Tags</strong>.</p>';
     }
 
     container.innerHTML = html;
@@ -2603,7 +2674,7 @@ function buildForm(type) {
 
     if (type === "spend") {
         html += amountFieldHtml("fAmount", "Amount");
-        html += walletSelectHtml("fWallet", "Out of wallet", defaults.spendWallet);
+        html += walletSelectHtml("fWallet", "Tag", defaults.spendWallet);
         html += '<div class="field-pair">';
         html += textFieldHtml("fMerchant", "Where", "familymart", true);
         html += '<div class="vr"></div>';
@@ -2614,25 +2685,18 @@ function buildForm(type) {
 
     if (type === "income") {
         html += amountFieldHtml("fAmount", "Amount in");
-        html += walletSelectHtml("fWallet", "Into wallet", defaults.incomeWallet);
+        html += walletSelectHtml("fWallet", "Into", defaults.incomeWallet);
         html += textFieldHtml("fMerchant", "Source", "parents", true);
         byId("submitBtn").textContent = "Log income";
     }
 
     if (type === "transfer") {
         html += amountFieldHtml("fAmount", "Amount out");
-        html += walletSelectHtml("fWallet", "Out of wallet", defaults.transferFrom);
+        html += walletSelectHtml("fWallet", "Out of", defaults.transferFrom);
         html += amountFieldHtml("fToAmount", "Amount that arrived");
-        html += walletSelectHtml("fToWallet", "Into wallet", defaults.transferTo);
+        html += walletSelectHtml("fToWallet", "Into", defaults.transferTo);
         html += textFieldHtml("fMerchant", "Via", "flip", true);
         byId("submitBtn").textContent = "Log top up";
-    }
-
-    if (type === "move") {
-        html += amountFieldHtml("fAmount", "Amount");
-        html += walletSelectHtml("fWallet", "Out of wallet", defaults.moveFrom);
-        html += walletSelectHtml("fToWallet", "Into wallet", defaults.moveTo);
-        byId("submitBtn").textContent = "Move it";
     }
 
     container.innerHTML = html;
@@ -3068,10 +3132,10 @@ async function selectMonth(key) {
     }
 }
 
-/* Wallets that closed negative are an artefact of overspending an envelope,
-   not money that vanished. Zero them and take the shortfall out of the
-   largest positive wallet in the same account, so the account total carries
-   across intact. Every figure stays editable before anything is written. */
+/* Tags are labels, not pots, so a per-tag closing balance carries no meaning.
+   What must survive the month boundary is the account total. It lands in one
+   tag per account — the one already holding the money — and every other tag
+   opens at zero. Editable before anything is written. */
 function computeCarryDefaults() {
     const balances = computeWalletBalances(state.rows);
     const opening = {};
@@ -3079,31 +3143,30 @@ function computeCarryDefaults() {
     for (let a = 0; a < state.config.accounts.length; a++) {
         const account = state.config.accounts[a];
         const wallets = walletsOfAccount(account.id);
-        let deficit = 0;
-        let largestId = null;
-        let largestValue = 0;
+
+        if (wallets.length === 0) {
+            continue;
+        }
+
+        const total = sumAccountBalance(account.id, balances);
+
+        let targetId = wallets[0].id;
+        let largest = 0;
 
         for (let i = 0; i < wallets.length; i++) {
-            const walletId = wallets[i].id;
-            const balance = balances[walletId] || 0;
+            const balance = balances[wallets[i].id] || 0;
 
-            if (balance < 0) {
-                deficit += -balance;
-                opening[walletId] = 0;
-                continue;
-            }
-
-            opening[walletId] = roundFor(balance, account.currency);
-
-            if (balance > largestValue) {
-                largestValue = balance;
-                largestId = walletId;
+            if (balance > largest) {
+                largest = balance;
+                targetId = wallets[i].id;
             }
         }
 
-        if (deficit > 0 && largestId !== null) {
-            opening[largestId] = roundFor(largestValue - deficit, account.currency);
+        for (let i = 0; i < wallets.length; i++) {
+            opening[wallets[i].id] = 0;
         }
+
+        opening[targetId] = roundFor(total, account.currency);
     }
 
     return opening;
@@ -3363,6 +3426,7 @@ function renderConfigPanel() {
     periodSelect.innerHTML = accountOptions;
     periodSelect.value = state.config.period.primaryAccount;
     byId("periodEnd").value = state.config.period.end;
+    byId("weekStart").value = String(weekStartDay());
 
     let accountChips = "";
     for (let a = 0; a < state.config.accounts.length; a++) {
@@ -3521,6 +3585,7 @@ function onAddWallet() {
 async function onCloseConfig() {
     state.config.period.end = byId("periodEnd").value;
     state.config.period.primaryAccount = byId("periodAcct").value;
+    state.config.period.weekStart = parseInt(byId("weekStart").value, 10);
 
     byId("configVeil").hidden = true;
     buildForm(state.activeType);
@@ -3534,7 +3599,7 @@ async function onCloseConfig() {
    =============================================================== */
 
 const DEFAULT_CONFIG = {
-    period: { start: "2026-08-08", end: "2026-08-31", primaryAccount: "tng" },
+    period: { start: "2026-08-08", end: "2026-08-31", primaryAccount: "tng", weekStart: 1 },
     accounts: [
         { id: "tng",  name: "Touch 'n Go", currency: "MYR" },
         { id: "cash", name: "Cash",        currency: "MYR" },
@@ -3547,6 +3612,7 @@ const DEFAULT_CONFIG = {
         { id: "impulse",       name: "Impulse",       account: "tng" },
         { id: "transport",     name: "Transport",     account: "tng" },
         { id: "essentials",    name: "Essentials",    account: "tng" },
+        { id: "relationship",  name: "Relationship",  account: "tng" },
         { id: "cash-hand",     name: "On hand",       account: "cash" },
         { id: "allowance",     name: "Allowance",     account: "bca" },
         { id: "savings",       name: "Savings",       account: "bca" },
