@@ -297,12 +297,50 @@ body.is-overdrawn .panel-s { border-color: var(--hairline); }
 /* --- hero: ring + stats ---------------------------------------- */
 .hero {
     display: grid;
-    grid-template-columns: 172px minmax(0, 1fr);
-    gap: 2.25rem;
+    grid-template-columns: 172px 1px minmax(0, 1fr);
+    gap: 0 2rem;
     align-items: center;
 }
 
-.hero.panel-s { padding: 1.9rem 2rem; margin-top: 1.5rem; }
+.hero.panel-s { padding: 1.75rem 2rem; margin-top: 1.5rem; }
+
+.hero > .vr {
+    background: var(--hairline-dim);
+    align-self: stretch;
+    margin: 0.25rem 0;
+}
+
+/* The three stats share one grid so labels, figures and notes each sit on a
+   common line. Independently stacked blocks are what made this float. */
+.herostats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: auto auto auto;
+    column-gap: 1.75rem;
+    row-gap: 0.55rem;
+    align-items: baseline;
+}
+
+.hstat { display: contents; }
+
+.herostats > .hstat > .label    { grid-row: 1; margin-bottom: 0; align-self: end; }
+.herostats > .hstat > .bignum,
+.herostats > .hstat > .midnum   { grid-row: 2; }
+.herostats > .hstat > .subnote  { grid-row: 3; margin-top: 0; align-self: start; }
+
+/* Hairlines between the columns instead of empty air. */
+.herostats > .hstat:nth-child(2) > .label,
+.herostats > .hstat:nth-child(2) > .bignum,
+.herostats > .hstat:nth-child(2) > .midnum,
+.herostats > .hstat:nth-child(2) > .subnote,
+.herostats > .hstat:nth-child(3) > .label,
+.herostats > .hstat:nth-child(3) > .bignum,
+.herostats > .hstat:nth-child(3) > .midnum,
+.herostats > .hstat:nth-child(3) > .subnote {
+    border-left: 1px solid var(--hairline-dim);
+    padding-left: 0.875rem;
+    margin-left: -0.875rem;
+}
 
 .ringwrap { position: relative; width: 172px; height: 172px; }
 .ringwrap svg { width: 172px; height: 172px; transform: rotate(-90deg); }
@@ -1044,16 +1082,45 @@ body.is-overdrawn .wtile svg { stroke: var(--pine) !important; }
     .hero {
         grid-template-columns: 1fr;
         justify-items: center;
-        gap: 1.25rem;
+        gap: 1.4rem;
     }
 
+    .hero > .vr { display: none; }
+
+    /* Three narrow columns chop every label in half on a phone. One row per
+       stat: name on the left, figure on the right, note underneath. */
     .herostats {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 0.75rem;
+        display: block;
         width: 100%;
     }
 
-    .hstat .label { font-size: 0.5625rem; letter-spacing: 0.06em; }
+    .hstat {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 0.5rem 1rem;
+        padding: 0.8rem 0;
+        border-top: 1px solid var(--hairline-dim);
+    }
+
+    .hstat:last-child { padding-bottom: 0; }
+
+    .herostats > .hstat > .label,
+    .herostats > .hstat > .bignum,
+    .herostats > .hstat > .midnum,
+    .herostats > .hstat > .subnote {
+        border-left: 0;
+        padding-left: 0;
+        margin-left: 0;
+        grid-row: auto;
+    }
+
+    .hstat > .label { flex: 1 1 auto; font-size: 0.625rem; }
+    .hstat > .bignum,
+    .hstat > .midnum { flex: 0 0 auto; font-size: 1.5rem; }
+    .hstat > .bignum .cur { font-size: 0.625rem; transform: translateY(-0.5em); }
+    .hstat > .subnote { flex: 1 0 100%; margin-top: 0; }
 
     .panel-s { padding: 1.1rem 1rem 1.2rem 1rem; }
 
@@ -1347,6 +1414,8 @@ body.is-overdrawn .wtile svg { stroke: var(--pine) !important; }
         <div class="rsub" id="ringOf">&mdash;</div>
       </div>
     </div>
+
+    <div class="vr"></div>
 
     <div class="herostats">
       <div class="hstat">
