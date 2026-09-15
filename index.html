@@ -297,7 +297,7 @@ body.is-overdrawn .panel-s { border-color: var(--hairline); }
 /* --- hero: ring + stats ---------------------------------------- */
 .hero {
     display: grid;
-    grid-template-columns: 172px 1px minmax(0, 1fr);
+    grid-template-columns: 168px 1px minmax(0, 1fr);
     gap: 0 2rem;
     align-items: center;
 }
@@ -306,9 +306,61 @@ body.is-overdrawn .panel-s { border-color: var(--hairline); }
 
 .hero > .vr {
     background: var(--hairline-dim);
-    align-self: stretch;
-    margin: 0.25rem 0;
+    width: 1px;
+    height: 76px;
+    align-self: center;
 }
+
+/* --- the ring ---------------------------------------------------- */
+.ringwrap {
+    position: relative;
+    width: 168px;
+    height: 168px;
+    flex: none;
+}
+
+.ringwrap svg {
+    width: 168px;
+    height: 168px;
+    transform: rotate(-90deg);
+    display: block;
+}
+
+.ringwrap circle {
+    fill: none;
+    stroke-linecap: round;
+}
+
+.ringcentre {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.15rem;
+    text-align: center;
+    padding: 0 1.7rem;
+}
+
+.ringcentre .label { font-size: 0.5625rem; margin: 0; }
+
+.ringcentre .rbig {
+    font-family: var(--serif);
+    font-size: 1.5rem;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.ringcentre .rsub {
+    font-size: 0.5625rem;
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.35;
+}
+
+.ringcentre .rbig.is-neg { color: var(--clay); }
 
 /* One line per stat: name, figure, note. Borders live on the stat itself so
    a media query can switch them off without fighting specificity. */
@@ -334,10 +386,31 @@ body.is-overdrawn .panel-s { border-color: var(--hairline); }
 }
 
 .hstat > .label   { flex: 0 0 auto; margin-bottom: 0; }
-.hstat > .subnote { flex: 1 1 7rem; margin-top: 0; min-width: 0; }
+.hstat > .subnote { flex: 1 1 100%; margin-top: 0.15rem; min-width: 0; }
 
-.hero .bignum { font-size: clamp(1.6rem, 2.3vw, 2.05rem); }
-.hero .midnum { font-size: clamp(1.45rem, 2vw, 1.8rem); }
+/* Three different jobs, three different treatments. Spendable money is serif;
+   the overdraw flag is mono in a pill, because it is not money you can spend
+   and should not read like it is. */
+.hstat--primary .bignum { font-size: clamp(1.8rem, 2.6vw, 2.3rem); color: var(--pine); }
+.hstat--primary .label  { color: var(--pine); }
+
+.hstat--secondary .midnum { font-size: clamp(1.25rem, 1.7vw, 1.5rem); color: var(--ink-muted); }
+
+.hstat--flag .midnum {
+    font-family: var(--mono);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    background: var(--paper-sunk);
+    color: var(--ink-muted);
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+}
+
+.hstat--flag .midnum.is-neg {
+    background: var(--clay-tint);
+    color: var(--clay);
+}
+
 .hero .bignum .cur { font-size: 0.6875rem; transform: translateY(-0.4em); }
 
 /* --- mobile nav ------------------------------------------------- */
@@ -1039,6 +1112,26 @@ body.is-overdrawn .wtile svg { stroke: var(--pine) !important; }
     .hero .midnum { flex: 0 0 auto; font-size: 1.5rem; line-height: 1; }
     .hero .bignum .cur { font-size: 0.625rem; transform: translateY(-0.45em); }
 
+    /* The form belongs under the data on a phone, not beside it. */
+    .split {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .split > .vr { display: none; }
+
+    .col-form {
+        order: 1;
+        position: static;
+        padding: 0 0 2.5rem 0;
+    }
+
+    .col-data {
+        order: 2;
+        padding: 0 0 4rem 0;
+        border-top: 1px solid var(--hairline);
+    }
+
     .field.amount input { font-size: 2.75rem; }
     .submit { padding: 1.1rem 1rem; }
 
@@ -1297,11 +1390,11 @@ body.is-overdrawn .wtile svg { stroke: var(--pine) !important; }
   <section class="hero panel-s">
     <div class="ringwrap">
       <svg viewBox="0 0 172 172" aria-hidden="true">
-        <circle cx="86" cy="86" r="72" stroke="var(--paper-sunk)" stroke-width="13"></circle>
-        <circle cx="86" cy="86" r="72" stroke="var(--pine)" stroke-width="13" id="ringSpend"
+        <circle cx="86" cy="86" r="72" fill="none" stroke="var(--paper-sunk)" stroke-width="13"></circle>
+        <circle cx="86" cy="86" r="72" fill="none" stroke="var(--pine)" stroke-width="13" id="ringSpend"
                 stroke-dasharray="0 452.39"></circle>
-        <circle cx="86" cy="86" r="59" stroke="var(--paper-sunk)" stroke-width="3" id="ringOhTrack"></circle>
-        <circle cx="86" cy="86" r="59" stroke="var(--ink-faint)" stroke-width="3" id="ringOh"
+        <circle cx="86" cy="86" r="59" fill="none" stroke="var(--paper-sunk)" stroke-width="3" id="ringOhTrack"></circle>
+        <circle cx="86" cy="86" r="59" fill="none" stroke="var(--ink-faint)" stroke-width="3" id="ringOh"
                 stroke-dasharray="0 370.71"></circle>
       </svg>
       <div class="ringcentre">
@@ -1314,17 +1407,17 @@ body.is-overdrawn .wtile svg { stroke: var(--pine) !important; }
     <div class="vr"></div>
 
     <div class="herostats">
-      <div class="hstat">
+      <div class="hstat hstat--primary">
         <span class="label" id="hlLabel1">&mdash;</span>
         <div class="bignum num" id="hlAmount">0<span class="cur" id="hlCur">MYR</span></div>
         <div class="subnote" id="hlNote">&mdash;</div>
       </div>
-      <div class="hstat">
+      <div class="hstat hstat--secondary">
         <span class="label" id="hlLabel2">&mdash;</span>
         <div class="midnum num" id="hlDays">&mdash;</div>
         <div class="subnote" id="hlPace">&mdash;</div>
       </div>
-      <div class="hstat">
+      <div class="hstat hstat--flag">
         <span class="label" id="hlLabel3">&mdash;</span>
         <div class="midnum num" id="hlToday">&mdash;</div>
         <div class="subnote" id="hlTodayNote">&mdash;</div>
@@ -2453,7 +2546,7 @@ function renderHeadline() {
         byId("hlCur").textContent = account.currency;
         byId("hlAmount").childNodes[0].nodeValue = "0.00";
         byId("hlAmount").classList.remove("is-neg");
-        byId("hlNote").textContent = "Start one to get a daily number.";
+        byId("hlNote").textContent = "Start one for a daily number";
         byId("hlLabel2").textContent = "Unbudgeted spend";
         byId("hlDays").textContent = formatAmount(sumSpentToday(accountId, state.rows), account.currency);
         byId("hlDays").classList.remove("is-neg");
@@ -2474,13 +2567,11 @@ function renderHeadline() {
     if (status.phase === "ended") {
         byId("hlLabel1").textContent = "Budget ended";
         byId("hlAmount").childNodes[0].nodeValue = formatAmount(status.remaining, account.currency);
-        byId("hlNote").textContent = "Ran " + budget.start + " to " + budget.end + ". Start a new one.";
+        byId("hlNote").textContent = "Start a new one";
     } else {
         byId("hlLabel1").textContent = "Left today";
         byId("hlAmount").childNodes[0].nodeValue = formatAmount(status.leftToday, account.currency);
-        byId("hlNote").textContent = "of " + formatAmount(status.todayPlan, account.currency)
-                                   + " planned · " + formatAmount(status.perFutureDay, account.currency)
-                                   + "/day after today";
+        byId("hlNote").textContent = "then " + formatAmount(status.perFutureDay, account.currency) + "/day";
     }
 
     if (status.leftToday < 0 && status.phase !== "ended") {
@@ -2503,8 +2594,7 @@ function renderHeadline() {
         tail = " day left";
     }
 
-    byId("hlPace").textContent = "of " + formatAmount(status.total, account.currency)
-                               + " · " + Math.max(status.daysLeft, 0) + tail;
+    byId("hlPace").textContent = Math.max(status.daysLeft, 0) + tail;
 
     byId("hlLabel3").textContent = "Overdrawn";
     byId("hlToday").textContent = formatAmount(status.overdraw, account.currency);
@@ -2515,9 +2605,8 @@ function renderHeadline() {
         byId("hlToday").classList.remove("is-neg");
     }
 
-    byId("hlTodayNote").textContent = "topped up " + formatAmount(status.funded, account.currency)
-                                    + " of " + formatAmount(status.total + budget.overhead, account.currency)
-                                    + " planned";
+    byId("hlTodayNote").textContent = formatAmount(status.funded, account.currency) + " of "
+                                    + formatAmount(status.total + budget.overhead, account.currency);
 }
 
 const RING_OUTER = 2 * Math.PI * 72;
