@@ -331,6 +331,116 @@ button, input, select {
 
 .wbar span.is-neg { background: var(--clay); }
 
+/* Overdrawn: the whole surface changes state, not one cell. */
+body.is-overdrawn {
+    --pine:        #8A3324;
+    --pine-deep:   #6B2418;
+    --mint:        #F7E8E4;
+    --hairline:    #E3C6BF;
+    --paper:       #F6F2F0;
+    --ink:         #1B1210;
+    --ink-muted:   #66544F;
+}
+
+body.is-overdrawn .wbar span,
+body.is-overdrawn .brow .bbar span,
+body.is-overdrawn .daybar > span { background: var(--pine) !important; }
+
+body.is-overdrawn .wtile {
+    border-color: var(--hairline) !important;
+    background: var(--mint) !important;
+}
+
+body.is-overdrawn .wtile svg { stroke: var(--pine) !important; }
+
+/* --- the day strip --------------------------------------------- */
+.daystrip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    padding-top: 1.1rem;
+}
+
+.daycell {
+    flex: 1 1 3.4rem;
+    min-width: 3.4rem;
+    border: 1px solid var(--hairline-dim);
+    border-radius: 2px;
+    padding: 0.4rem 0.35rem 0.45rem 0.35rem;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+    line-height: 1.25;
+}
+
+.daycell .dnum {
+    display: block;
+    font-size: 0.5625rem;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+}
+
+.daycell .damt {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    margin-top: 0.15rem;
+}
+
+.daycell.is-past  { background: var(--paper-sunk); }
+.daycell.is-past .damt { color: var(--ink-muted); }
+.daycell.is-over .damt { color: var(--clay); }
+
+.daycell.is-today {
+    border-color: var(--pine);
+    border-width: 2px;
+    padding: calc(0.4rem - 1px) calc(0.35rem - 1px) calc(0.45rem - 1px) calc(0.35rem - 1px);
+}
+
+.daycell.is-pinned {
+    background: var(--mint);
+    border-color: var(--hairline);
+}
+
+.daycell.is-pinned .dnum::after { content: " \00B7 PIN"; color: var(--pine); }
+
+.daycell input {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    outline: none;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    padding: 0;
+    margin-top: 0.15rem;
+}
+
+.striphint {
+    padding-top: 0.7rem;
+    font-size: 0.6875rem;
+    color: var(--ink-faint);
+    line-height: 1.6;
+}
+
+.striphint.is-err { color: var(--clay); }
+
+.nobudget {
+    margin-top: 2rem;
+    padding: 1.1rem 1.2rem;
+    border: 1px solid var(--hairline);
+    border-radius: 2px;
+    background: var(--mint);
+}
+
+.nobudget p {
+    margin: 0 0 0.9rem 0;
+    font-size: 0.8125rem;
+    color: var(--pine);
+    line-height: 1.6;
+}
+
 .acctrow {
     display: flex;
     align-items: baseline;
@@ -948,6 +1058,13 @@ button, input, select {
         <select id="newWalletAcct"></select>
       </div>
     </div>
+    <div class="field">
+      <label for="newWalletOverhead">Overhead — tracked but never budgeted</label>
+      <select id="newWalletOverhead">
+        <option value="no">No, counts against the daily plan</option>
+        <option value="yes">Yes, sits outside the budget</option>
+      </select>
+    </div>
     <div class="field-pair">
       <div class="field">
         <label for="newWalletIcon">Glyph</label>
@@ -991,6 +1108,69 @@ button, input, select {
 
     <button class="submit" id="configDone" style="margin-top:2.5rem">Save &amp; close</button>
     <p class="formnote" id="configNote"></p>
+  </div>
+</div>
+
+<!-- =============================================================
+     Budget
+     ============================================================= -->
+<div class="veil" id="budgetVeil" hidden>
+  <button class="veil-close" id="budgetClose" title="Close" aria-label="Close">✕</button>
+  <div class="panel">
+    <h1>Start a budget</h1>
+    <p>
+      Any length you like. <strong>Amount</strong> is the variable money the daily
+      number is built from. <strong>Overhead</strong> is laundry, bills and the like &mdash;
+      logged as normal, but never counted against the daily plan.
+    </p>
+
+    <div class="field-pair">
+      <div class="field">
+        <label for="bStart">From</label>
+        <input id="bStart" type="date">
+      </div>
+      <div class="vr"></div>
+      <div class="field">
+        <label for="bEnd">Until</label>
+        <input id="bEnd" type="date">
+      </div>
+    </div>
+
+    <div class="field-pair">
+      <div class="field">
+        <label for="bAmount">Budget <span class="cur-hint" id="bCur"></span></label>
+        <input id="bAmount" type="text" inputmode="decimal" placeholder="280">
+      </div>
+      <div class="vr"></div>
+      <div class="field">
+        <label for="bOverhead">Expected overhead</label>
+        <input id="bOverhead" type="text" inputmode="decimal" placeholder="60">
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="bAccount">Account</label>
+      <select id="bAccount"></select>
+    </div>
+
+    <button class="submit" id="bStartBtn">Start budget</button>
+    <p class="formnote" id="bNote"></p>
+
+    <div class="sectionhead"><h2>Amend the current one</h2></div>
+    <p>Raising the budget is a recorded decision. Topping up is not &mdash; it just counts as overdraw.</p>
+    <div class="field-pair">
+      <div class="field">
+        <label for="bDelta">Add</label>
+        <input id="bDelta" type="text" inputmode="decimal" placeholder="60">
+      </div>
+      <div class="vr"></div>
+      <div class="field">
+        <label for="bReason">Because</label>
+        <input id="bReason" type="text" placeholder="work income">
+      </div>
+    </div>
+    <button class="submit" id="bAmendBtn">Amend</button>
+    <div class="chiprow" id="bAmendList"></div>
   </div>
 </div>
 
@@ -1040,6 +1220,7 @@ button, input, select {
     <div class="masthead-right">
       <select class="monthpick" id="monthPick"><option value="current">This month</option></select>
       <span class="syncdot label" id="syncDot" data-state="ok"><i></i><span id="syncText">synced</span></span>
+      <button class="linkbtn" id="openBudget">Budget</button>
       <button class="linkbtn" id="openClose">Close month</button>
       <button class="linkbtn" id="openConfig">Tags</button>
       <button class="linkbtn" id="reloadBtn">Reload</button>
@@ -1072,6 +1253,15 @@ button, input, select {
       <div class="archivebar" id="archiveBar" hidden>
         <span id="archiveText">Viewing an archived month &mdash; read only.</span>
         <button class="linkbtn" id="backToCurrent">Back to this month</button>
+      </div>
+
+      <div id="planSection">
+        <div class="sectionhead">
+          <h2>The plan</h2>
+          <span class="label" id="planRange"></span>
+        </div>
+        <div class="daystrip" id="dayStrip"></div>
+        <p class="striphint" id="stripHint"></p>
       </div>
 
       <div class="sectionhead">
@@ -1144,8 +1334,9 @@ const CSV_COLUMNS = [
     "id"
 ];
 
-const LOG_PATH    = "log.csv";
-const CONFIG_PATH = "config.json";
+const LOG_PATH     = "log.csv";
+const CONFIG_PATH  = "config.json";
+const BUDGETS_PATH = "budgets.json";
 
 const SETTINGS_KEY = "ledger.settings";
 const PENDING_KEY  = "ledger.pending";
@@ -1163,7 +1354,9 @@ const state = {
     months:     [],
     viewMonth:  "current",
     viewRows:   [],
-    lastLoadedAt: 0
+    lastLoadedAt: 0,
+    budgets:    [],
+    budgetsSha: null
 };
 
 let pickedColour = -1;
@@ -2161,58 +2354,226 @@ function renderHeadline() {
         return;
     }
 
-    const balances = computeWalletBalances(state.rows);
-    const remaining = sumAccountBalance(accountId, balances);
-    const daysLeft = daysLeftInWeek();
-    const perDay = remaining / daysLeft;
+    const budget = activeBudget();
 
-    /* The rate is the headline. The pot it comes from is deliberately the
-       smaller number — a total invites one big decision, a rate invites
-       a small one every day. */
-    byId("hlLabel1").textContent = "Can spend per day";
+    if (budget === null) {
+        setOverdrawnTheme(false);
+        byId("hlLabel1").textContent = "No budget running";
+        byId("hlCur").textContent = account.currency;
+        byId("hlAmount").childNodes[0].nodeValue = "0.00";
+        byId("hlAmount").classList.remove("is-neg");
+        byId("hlNote").textContent = "Start one to get a daily number.";
+        byId("hlLabel2").textContent = "Unbudgeted spend";
+        byId("hlDays").textContent = formatAmount(sumSpentToday(accountId, state.rows), account.currency);
+        byId("hlDays").classList.remove("is-neg");
+        byId("hlPace").textContent = "logged today";
+        byId("hlLabel3").textContent = "In " + account.name;
+        const bal = sumAccountBalance(accountId, computeWalletBalances(state.rows));
+        byId("hlToday").textContent = formatAmount(bal, account.currency);
+        byId("hlToday").classList.remove("is-neg");
+        byId("hlTodayNote").textContent = account.currency + " on hand";
+        return;
+    }
+
+    const status = budgetStatus(budget);
+    setOverdrawnTheme(status.overdraw > 0);
+
     byId("hlCur").textContent = account.currency;
-    byId("hlAmount").childNodes[0].nodeValue = formatAmount(perDay, account.currency);
 
-    if (perDay < 0) {
+    if (status.phase === "ended") {
+        byId("hlLabel1").textContent = "Budget ended";
+        byId("hlAmount").childNodes[0].nodeValue = formatAmount(status.remaining, account.currency);
+        byId("hlNote").textContent = "Ran " + budget.start + " to " + budget.end + ". Start a new one.";
+    } else {
+        byId("hlLabel1").textContent = "Left today";
+        byId("hlAmount").childNodes[0].nodeValue = formatAmount(status.leftToday, account.currency);
+        byId("hlNote").textContent = "of " + formatAmount(status.todayPlan, account.currency)
+                                   + " planned · " + formatAmount(status.perFutureDay, account.currency)
+                                   + "/day after today";
+    }
+
+    if (status.leftToday < 0 && status.phase !== "ended") {
         byId("hlAmount").classList.add("is-neg");
     } else {
         byId("hlAmount").classList.remove("is-neg");
     }
 
-    const resetName = WEEKDAY_NAMES[weekStartDay()];
+    byId("hlLabel2").textContent = "Left in budget";
+    byId("hlDays").textContent = formatAmount(status.remaining, account.currency);
 
-    if (daysLeft === 1) {
-        byId("hlNote").textContent = "Last day of the week — resets " + resetName;
-    } else {
-        byId("hlNote").textContent = daysLeft + " days until " + resetName;
-    }
-
-    byId("hlLabel2").textContent = "Left in " + account.name;
-    byId("hlDays").textContent = formatAmount(remaining, account.currency);
-
-    if (remaining < 0) {
+    if (status.remaining < 0) {
         byId("hlDays").classList.add("is-neg");
     } else {
         byId("hlDays").classList.remove("is-neg");
     }
 
-    byId("hlPace").textContent = account.currency + " across every tag";
-
-    byId("hlLabel3").textContent = "Spent today";
-    const spentToday = sumSpentToday(accountId, state.rows);
-    byId("hlToday").textContent = formatAmount(spentToday, account.currency);
-
-    if (perDay > 0) {
-        byId("hlTodayNote").textContent = "of " + formatAmount(perDay, account.currency) + " for today";
-    } else {
-        byId("hlTodayNote").textContent = account.currency + " logged since midnight";
+    let tail = " days left";
+    if (status.daysLeft === 1) {
+        tail = " day left";
     }
 
-    if (spentToday > perDay && perDay > 0) {
+    byId("hlPace").textContent = "of " + formatAmount(status.total, account.currency)
+                               + " · " + Math.max(status.daysLeft, 0) + tail;
+
+    byId("hlLabel3").textContent = "Overdrawn";
+    byId("hlToday").textContent = formatAmount(status.overdraw, account.currency);
+
+    if (status.overdraw > 0) {
         byId("hlToday").classList.add("is-neg");
     } else {
         byId("hlToday").classList.remove("is-neg");
     }
+
+    byId("hlTodayNote").textContent = "topped up " + formatAmount(status.funded, account.currency)
+                                    + " of " + formatAmount(status.total + budget.overhead, account.currency)
+                                    + " planned";
+}
+
+function setOverdrawnTheme(on) {
+    if (document.body === undefined || document.body === null) {
+        return;
+    }
+
+    if (on === true) {
+        document.body.classList.add("is-overdrawn");
+    } else {
+        document.body.classList.remove("is-overdrawn");
+    }
+}
+
+function renderDayStrip() {
+    const section = byId("planSection");
+    const budget = activeBudget();
+
+    if (budget === null || isArchiveView() === true) {
+        section.hidden = true;
+        return;
+    }
+
+    section.hidden = false;
+
+    const account = findAccount(budget.account);
+    const currency = account === null ? "" : account.currency;
+    const days = budgetDays(budget);
+    const today = localTimestamp(new Date()).slice(0, 10);
+    const status = budgetStatus(budget);
+
+    byId("planRange").textContent = budget.start + " → " + budget.end;
+
+    let html = "";
+
+    for (let i = 0; i < days.length; i++) {
+        const day = days[i];
+        const pin = pinOf(budget, day);
+        let classes = "daycell";
+        let amount = 0;
+
+        if (day < today) {
+            classes += " is-past";
+            amount = spentOnDay(budget, day);
+
+            const planned = pin === null ? status.perFutureDay : pin;
+
+            if (pin !== null && amount > pin) {
+                classes += " is-over";
+            }
+        } else if (day === today) {
+            classes += " is-today";
+            amount = status.todayPlan;
+        } else {
+            amount = pin === null ? status.perFutureDay : pin;
+        }
+
+        if (pin !== null) {
+            classes += " is-pinned";
+        }
+
+        html += '<button type="button" class="' + classes + '" data-day="' + day + '">';
+        html += '<span class="dnum">' + day.slice(8) + "/" + day.slice(5, 7) + "</span>";
+        html += '<span class="damt">' + formatAmount(amount, currency) + "</span>";
+        html += "</button>";
+    }
+
+    byId("dayStrip").innerHTML = html;
+
+    const cells = byId("dayStrip").querySelectorAll(".daycell");
+    for (let i = 0; i < cells.length; i++) {
+        cells[i].addEventListener("click", onDayCellClick);
+    }
+
+    const pinnedTotal = sumPinsAfter(budget, addDays(budget.start, -1));
+    const freeDays = countFreeDays(budget, budget.start, true);
+    const hint = byId("stripHint");
+
+    if (budgetTotal(budget) - pinnedTotal < 0) {
+        hint.textContent = "Pins exceed the budget by "
+                         + formatAmount(pinnedTotal - budgetTotal(budget), currency)
+                         + " " + currency + ". Free days are showing zero.";
+        hint.classList.add("is-err");
+    } else {
+        hint.classList.remove("is-err");
+        hint.textContent = "Tap a day to fix an amount. " + formatAmount(pinnedTotal, currency)
+                         + " " + currency + " pinned across " + (days.length - freeDays)
+                         + " day(s); the rest share what is left. Past days show what you actually spent.";
+    }
+}
+
+function onDayCellClick(event) {
+    const cell = event.currentTarget;
+    const day = cell.getAttribute("data-day");
+    const budget = activeBudget();
+
+    if (budget === null || cell.querySelector("input") !== null) {
+        return;
+    }
+
+    const existing = pinOf(budget, day);
+    const slot = cell.querySelector(".damt");
+    slot.innerHTML = '<input type="text" inputmode="decimal" value="'
+                   + (existing === null ? "" : existing) + '" placeholder="free">';
+
+    const input = slot.querySelector("input");
+    input.focus();
+
+    let done = false;
+
+    const commit = async function () {
+        if (done === true) {
+            return;
+        }
+        done = true;
+
+        const cleaned = input.value.replace(/[^0-9.]/g, "");
+        const value = parseFloat(cleaned);
+
+        await mutateBudgets(function (list) {
+            if (list.length === 0) {
+                return;
+            }
+
+            const target = list[list.length - 1];
+
+            if (isNaN(value) === true || cleaned === "") {
+                delete target.pins[day];
+            } else {
+                target.pins[day] = value;
+            }
+        }, "pin " + day);
+
+        renderAll();
+    };
+
+    input.addEventListener("blur", commit);
+    input.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            commit();
+        }
+        if (e.key === "Escape") {
+            done = true;
+            renderAll();
+        }
+    });
 }
 
 function renderArchiveHeadline(account) {
@@ -2611,6 +2972,7 @@ function renderViewMode() {
     byId("archiveBar").hidden = archive === false;
     byId("colForm").hidden = archive;
     byId("openClose").hidden = archive;
+    byId("openBudget").hidden = archive;
 
     if (archive === true) {
         byId("archiveText").textContent = monthLabel(state.viewMonth) + " — archived and read only.";
@@ -2621,6 +2983,7 @@ function renderAll() {
     renderMonthPicker();
     renderViewMode();
     renderHeadline();
+    renderDayStrip();
     renderBreakdown();
     renderDayChart();
     renderWallets();
@@ -3521,6 +3884,494 @@ async function onCloseMonth() {
 
 
 /* ===============================================================
+   10c.  Budgets
+   =============================================================== */
+
+function activeBudget() {
+    if (state.budgets.length === 0) {
+        return null;
+    }
+
+    return state.budgets[state.budgets.length - 1];
+}
+
+function budgetTotal(budget) {
+    let total = budget.amount;
+
+    for (let i = 0; i < budget.amendments.length; i++) {
+        total += budget.amendments[i].delta;
+    }
+
+    return total;
+}
+
+function isOverheadTag(walletId) {
+    const wallet = findWallet(walletId);
+
+    if (wallet === null) {
+        return false;
+    }
+
+    return wallet.overhead === true;
+}
+
+function budgetDays(budget) {
+    const days = [];
+    let cursor = budget.start;
+
+    /* Defensive bound: a mistyped end date should not spin forever. */
+    for (let i = 0; i < 400; i++) {
+        days.push(cursor);
+
+        if (cursor === budget.end) {
+            return days;
+        }
+
+        cursor = addDays(cursor, 1);
+    }
+
+    return days;
+}
+
+function pinOf(budget, day) {
+    const value = budget.pins[day];
+
+    if (typeof value !== "number") {
+        return null;
+    }
+
+    return value;
+}
+
+/* Variable spend only — overhead tags are tracked but never budgeted. */
+function variableSpent(budget, fromDay, toDay) {
+    let total = 0;
+
+    for (let i = 0; i < state.rows.length; i++) {
+        const row = state.rows[i];
+
+        if (row.type !== "spend" || row.account !== budget.account) {
+            continue;
+        }
+
+        if (isOverheadTag(row.wallet) === true) {
+            continue;
+        }
+
+        const day = row.timestamp.slice(0, 10);
+
+        if (day < fromDay || day > toDay) {
+            continue;
+        }
+
+        const amount = parseFloat(row.amount);
+
+        if (isNaN(amount) === false) {
+            total += amount;
+        }
+    }
+
+    return total;
+}
+
+function overheadSpent(budget) {
+    let total = 0;
+
+    for (let i = 0; i < state.rows.length; i++) {
+        const row = state.rows[i];
+
+        if (row.type !== "spend" || row.account !== budget.account) {
+            continue;
+        }
+
+        if (isOverheadTag(row.wallet) === false) {
+            continue;
+        }
+
+        const day = row.timestamp.slice(0, 10);
+
+        if (day < budget.start || day > budget.end) {
+            continue;
+        }
+
+        const amount = parseFloat(row.amount);
+
+        if (isNaN(amount) === false) {
+            total += amount;
+        }
+    }
+
+    return total;
+}
+
+function fundedInto(budget) {
+    let total = 0;
+
+    for (let i = 0; i < state.rows.length; i++) {
+        const row = state.rows[i];
+
+        if (row.type !== "transfer" || row.to_account !== budget.account) {
+            continue;
+        }
+
+        const day = row.timestamp.slice(0, 10);
+
+        if (day < budget.start || day > budget.end) {
+            continue;
+        }
+
+        const amount = parseFloat(row.to_amount);
+
+        if (isNaN(amount) === false) {
+            total += amount;
+        }
+    }
+
+    return total;
+}
+
+function overdrawOf(budget) {
+    const expected = budgetTotal(budget) + budget.overhead;
+    const over = fundedInto(budget) - expected;
+
+    if (over < 0) {
+        return 0;
+    }
+
+    return over;
+}
+
+function sumPinsAfter(budget, day) {
+    const days = budgetDays(budget);
+    let total = 0;
+
+    for (let i = 0; i < days.length; i++) {
+        if (days[i] <= day) {
+            continue;
+        }
+
+        const pin = pinOf(budget, days[i]);
+
+        if (pin !== null) {
+            total += pin;
+        }
+    }
+
+    return total;
+}
+
+function countFreeDays(budget, fromDay, inclusive) {
+    const days = budgetDays(budget);
+    let count = 0;
+
+    for (let i = 0; i < days.length; i++) {
+        const day = days[i];
+
+        if (inclusive === true && day < fromDay) {
+            continue;
+        }
+
+        if (inclusive === false && day <= fromDay) {
+            continue;
+        }
+
+        if (pinOf(budget, day) === null) {
+            count += 1;
+        }
+    }
+
+    return count;
+}
+
+/* Today's number is computed from spend BEFORE today, so it does not move
+   while you are out spending. Future days re-flow off actual total spend. */
+function planForToday(budget, today) {
+    const pinned = pinOf(budget, today);
+
+    if (pinned !== null) {
+        return pinned;
+    }
+
+    const freeDays = countFreeDays(budget, today, true);
+
+    if (freeDays === 0) {
+        return 0;
+    }
+
+    const before = variableSpent(budget, budget.start, addDays(today, -1));
+    const pool = budgetTotal(budget) - before - sumPinsAfter(budget, today);
+
+    return pool / freeDays;
+}
+
+/* What each remaining free day gets IF today is spent to its plan. Today's
+   unspent allowance has to be reserved here, or a pinned day would make
+   tomorrow look richer than it is by the whole value of the pin. */
+function planForFutureDays(budget, today) {
+    const freeDays = countFreeDays(budget, today, false);
+
+    if (freeDays === 0) {
+        return 0;
+    }
+
+    const spent = variableSpent(budget, budget.start, budget.end);
+    let reservedForToday = 0;
+
+    if (today >= budget.start && today <= budget.end) {
+        const leftToday = planForToday(budget, today) - spentOnDay(budget, today);
+
+        if (leftToday > 0) {
+            reservedForToday = leftToday;
+        }
+    }
+
+    const pool = budgetTotal(budget) - spent - sumPinsAfter(budget, today) - reservedForToday;
+
+    return pool / freeDays;
+}
+
+function spentOnDay(budget, day) {
+    return variableSpent(budget, day, day);
+}
+
+function budgetStatus(budget) {
+    const today = localTimestamp(new Date()).slice(0, 10);
+    const total = budgetTotal(budget);
+    const spent = variableSpent(budget, budget.start, budget.end);
+
+    let phase = "active";
+
+    if (today < budget.start) {
+        phase = "upcoming";
+    }
+
+    if (today > budget.end) {
+        phase = "ended";
+    }
+
+    const todayPlan = planForToday(budget, today);
+
+    return {
+        phase: phase,
+        today: today,
+        total: total,
+        spent: spent,
+        remaining: total - spent,
+        overheadSpent: overheadSpent(budget),
+        funded: fundedInto(budget),
+        overdraw: overdrawOf(budget),
+        todayPlan: todayPlan,
+        leftToday: todayPlan - spentOnDay(budget, today),
+        perFutureDay: planForFutureDays(budget, today),
+        daysLeft: daysBetweenKeys(today, budget.end) + 1
+    };
+}
+
+
+/* ===============================================================
+   10d.  Budget persistence
+   =============================================================== */
+
+async function loadBudgets() {
+    const file = await githubRead(state.settings.repo, BUDGETS_PATH);
+
+    if (file.text === null) {
+        state.budgets = [];
+        state.budgetsSha = null;
+        return;
+    }
+
+    try {
+        const parsed = JSON.parse(file.text);
+        state.budgets = Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+        state.budgets = [];
+    }
+
+    state.budgetsSha = file.sha;
+}
+
+/* Same read-modify-write discipline as config: never push a stale snapshot. */
+async function mutateBudgets(mutator, message) {
+    for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+            const fresh = await githubRead(state.settings.repo, BUDGETS_PATH);
+            let list = [];
+
+            if (fresh.text !== null) {
+                const parsed = JSON.parse(fresh.text);
+
+                if (Array.isArray(parsed) === true) {
+                    list = parsed;
+                }
+            }
+
+            mutator(list);
+
+            const text = JSON.stringify(list, null, 2) + "\n";
+            const result = await githubWrite(state.settings.repo, BUDGETS_PATH, text, fresh.sha, message);
+
+            if (result.ok === true) {
+                state.budgets = list;
+                state.budgetsSha = result.sha;
+                return true;
+            }
+
+            if (result.conflict !== true) {
+                return false;
+            }
+
+        } catch (error) {
+            return false;
+        }
+    }
+
+    return false;
+}
+
+
+function renderBudgetPanel() {
+    const accountSelect = byId("bAccount");
+    let options = "";
+
+    for (let i = 0; i < state.config.accounts.length; i++) {
+        const account = state.config.accounts[i];
+        options += '<option value="' + escapeHtml(account.id) + '">' + escapeHtml(account.name) + "</option>";
+    }
+
+    accountSelect.innerHTML = options;
+
+    const budget = activeBudget();
+    const today = localTimestamp(new Date()).slice(0, 10);
+
+    if (budget === null) {
+        byId("bStart").value = today;
+        byId("bEnd").value = addDays(today, 6);
+        accountSelect.value = state.config.period.primaryAccount;
+        byId("bAmount").value = "";
+        byId("bOverhead").value = "";
+    } else {
+        byId("bStart").value = addDays(budget.end, 1);
+        byId("bEnd").value = addDays(budget.end, daysBetweenKeys(budget.start, budget.end) + 1);
+        accountSelect.value = budget.account;
+        byId("bAmount").value = budget.amount;
+        byId("bOverhead").value = budget.overhead;
+    }
+
+    const account = findAccount(accountSelect.value);
+    byId("bCur").textContent = account === null ? "" : account.currency;
+
+    let chips = "";
+
+    if (budget !== null) {
+        for (let i = 0; i < budget.amendments.length; i++) {
+            const a = budget.amendments[i];
+            chips += '<span class="chip">' + a.date + " · +" + a.delta + " · " + escapeHtml(a.note) + "</span>";
+        }
+    }
+
+    if (chips === "") {
+        chips = '<span class="chip">no amendments</span>';
+    }
+
+    byId("bAmendList").innerHTML = chips;
+    byId("bNote").textContent = "";
+    byId("bNote").classList.remove("is-err");
+}
+
+async function onStartBudget() {
+    const note = byId("bNote");
+    const start = readText("bStart");
+    const end = readText("bEnd");
+    const amount = readAmount("bAmount");
+    const overheadRaw = readAmount("bOverhead");
+    const account = readText("bAccount");
+
+    note.classList.remove("is-err");
+
+    if (start === "" || end === "" || end < start) {
+        note.textContent = "Give a start and an end, end not before start.";
+        note.classList.add("is-err");
+        return;
+    }
+
+    if (isNaN(amount) === true || amount <= 0) {
+        note.textContent = "Enter the budget amount.";
+        note.classList.add("is-err");
+        return;
+    }
+
+    let overhead = overheadRaw;
+
+    if (isNaN(overhead) === true) {
+        overhead = 0;
+    }
+
+    const budget = {
+        start: start,
+        end: end,
+        account: account,
+        amount: amount,
+        overhead: overhead,
+        amendments: [],
+        pins: {}
+    };
+
+    const saved = await mutateBudgets(function (list) {
+        list.push(budget);
+    }, "start budget " + start + " to " + end);
+
+    if (saved === false) {
+        note.textContent = "Could not save. Try again.";
+        note.classList.add("is-err");
+        return;
+    }
+
+    byId("budgetVeil").hidden = true;
+    renderAll();
+}
+
+async function onAmendBudget() {
+    const note = byId("bNote");
+    const delta = readAmount("bDelta");
+    const reason = readText("bReason");
+
+    note.classList.remove("is-err");
+
+    if (activeBudget() === null) {
+        note.textContent = "No budget to amend.";
+        note.classList.add("is-err");
+        return;
+    }
+
+    if (isNaN(delta) === true || delta === 0) {
+        note.textContent = "Enter how much to add.";
+        note.classList.add("is-err");
+        return;
+    }
+
+    const entry = {
+        date: localTimestamp(new Date()).slice(0, 10),
+        delta: delta,
+        note: reason
+    };
+
+    await mutateBudgets(function (list) {
+        if (list.length === 0) {
+            return;
+        }
+
+        list[list.length - 1].amendments.push(entry);
+    }, "amend budget +" + delta);
+
+    byId("bDelta").value = "";
+    byId("bReason").value = "";
+    renderBudgetPanel();
+    renderAll();
+}
+
+
+/* ===============================================================
    11.  Config panel
    =============================================================== */
 
@@ -3576,7 +4427,11 @@ function renderConfigPanel() {
         const accountName = account === null ? "?" : account.name;
         const palette = paletteFor(wallet);
         const chipStyle = "background:" + palette.fill + ";border-color:" + palette.line + ";color:" + palette.ink;
-        walletChips += '<span class="chip" style="' + chipStyle + '">' + escapeHtml(wallet.name) + " · " + escapeHtml(accountName);
+        let suffix = "";
+        if (wallet.overhead === true) {
+            suffix = " · overhead";
+        }
+        walletChips += '<span class="chip" style="' + chipStyle + '">' + escapeHtml(wallet.name) + " · " + escapeHtml(accountName) + suffix;
         walletChips += '<button data-kind="wallet" data-id="' + escapeHtml(wallet.id) + '" style="color:' + palette.ink + '">✕</button></span>';
     }
     byId("walletChips").innerHTML = walletChips;
@@ -3686,7 +4541,8 @@ function onAddWallet() {
         name: name,
         account: accountId,
         icon: readText("newWalletIcon"),
-        colour: colourIndex
+        colour: colourIndex,
+        overhead: readText("newWalletOverhead") === "yes"
     };
 
     state.config.wallets.push(wallet);
@@ -3781,6 +4637,7 @@ async function loadEverything() {
     }
 
     await loadMonths();
+    await loadBudgets();
 
     buildForm(state.activeType);
     renderAll();
@@ -3873,6 +4730,11 @@ function wireEvents() {
 
         if (byId("closeVeil").hidden === false) {
             byId("closeVeil").hidden = true;
+            return;
+        }
+
+        if (byId("budgetVeil").hidden === false) {
+            byId("budgetVeil").hidden = true;
         }
     });
 
@@ -3881,6 +4743,18 @@ function wireEvents() {
         renderConfigPanel();
         byId("configVeil").hidden = false;
     });
+
+    byId("openBudget").addEventListener("click", function () {
+        renderBudgetPanel();
+        byId("budgetVeil").hidden = false;
+    });
+
+    byId("budgetClose").addEventListener("click", function () {
+        byId("budgetVeil").hidden = true;
+    });
+
+    byId("bStartBtn").addEventListener("click", onStartBudget);
+    byId("bAmendBtn").addEventListener("click", onAmendBudget);
 
     byId("openClose").addEventListener("click", function () {
         renderClosePanel();
