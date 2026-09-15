@@ -16,8 +16,9 @@
    Design tokens
    --------------------------------------------------------------- */
 :root {
-    --paper:        #F4F5F0;
-    --paper-sunk:   #EDEEE8;
+    --paper:        #F1F2EC;
+    --paper-sunk:   #E8E9E1;
+    --surface:      #FBFBF7;
     --ink:          #111812;
     --ink-muted:    #556056;
     --ink-faint:    #8B948B;
@@ -93,7 +94,7 @@ button, input, select {
 
 .masthead {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
     gap: 1.5rem;
     padding: 2.25rem 0 1.125rem 0;
@@ -149,66 +150,6 @@ button, input, select {
 }
 
 .linkbtn:hover { color: var(--pine); border-bottom-color: var(--pine); }
-
-/* ---------------------------------------------------------------
-   Headline strip — the surveillance number
-   --------------------------------------------------------------- */
-.headline {
-    display: grid;
-    grid-template-columns: minmax(0, 1.6fr) 1px minmax(0, 1fr) 1px minmax(0, 1fr);
-    align-items: stretch;
-    border-bottom: 1px solid var(--hairline);
-}
-
-.headline > .vr { background: var(--hairline); }
-
-.hcell {
-    padding: 2rem 0 2rem 0;
-}
-
-.hcell + .hcell,
-.vr + .hcell {
-    padding-left: 2rem;
-}
-
-.hcell .label { display: block; margin-bottom: 0.875rem; }
-
-.bignum {
-    font-family: var(--serif);
-    font-size: clamp(2.75rem, 7vw, 4.25rem);
-    line-height: 0.92;
-    letter-spacing: -0.03em;
-    font-weight: 350;
-    display: flex;
-    align-items: baseline;
-    gap: 0.4rem;
-}
-
-.bignum .cur {
-    font-family: var(--mono);
-    font-size: 0.9rem;
-    font-weight: 500;
-    letter-spacing: 0.04em;
-    color: var(--ink-muted);
-    transform: translateY(-0.35em);
-}
-
-.bignum.is-neg { color: var(--clay); }
-
-.midnum {
-    font-family: var(--serif);
-    font-size: clamp(1.75rem, 3.4vw, 2.35rem);
-    line-height: 1;
-    letter-spacing: -0.02em;
-    font-weight: 350;
-}
-
-.subnote {
-    margin-top: 0.6rem;
-    font-size: 0.75rem;
-    color: var(--ink-muted);
-    line-height: 1.5;
-}
 
 /* ---------------------------------------------------------------
    Asymmetric body: 62 / 38
@@ -330,6 +271,122 @@ button, input, select {
 }
 
 .wbar span.is-neg { background: var(--clay); }
+
+/* ---------------------------------------------------------------
+   Panels — flat surfaces with hairlines, not floating cards
+   --------------------------------------------------------------- */
+.panel-s {
+    background: var(--surface);
+    border: 1px solid var(--hairline-dim);
+    border-radius: 3px;
+    padding: 1.4rem 1.5rem 1.5rem 1.5rem;
+    margin-top: 1.25rem;
+}
+
+.panel-s > .sectionhead:first-child { padding-top: 0; }
+
+body.is-overdrawn .panel-s { border-color: var(--hairline); }
+
+/* --- hero: ring + stats ---------------------------------------- */
+.hero {
+    display: grid;
+    grid-template-columns: 172px minmax(0, 1fr);
+    gap: 2rem;
+    align-items: center;
+    margin-top: 1.5rem;
+}
+
+.ringwrap { position: relative; width: 172px; height: 172px; }
+.ringwrap svg { width: 172px; height: 172px; transform: rotate(-90deg); }
+.ringwrap circle { fill: none; stroke-linecap: butt; }
+
+.ringcentre {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.1rem;
+}
+
+.ringcentre .label { font-size: 0.5625rem; }
+
+.ringcentre .rbig {
+    font-family: var(--serif);
+    font-size: 1.75rem;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.ringcentre .rsub { font-size: 0.625rem; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+.ringcentre .rbig.is-neg { color: var(--clay); }
+
+.herostats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+}
+
+.hstat { min-width: 0; }
+
+.bignum {
+    font-family: var(--serif);
+    font-size: clamp(2rem, 4.4vw, 2.9rem);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    font-weight: 350;
+    display: flex;
+    align-items: baseline;
+    gap: 0.35rem;
+}
+
+.bignum .cur {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    color: var(--ink-muted);
+    transform: translateY(-0.6em);
+}
+
+.bignum.is-neg { color: var(--clay); }
+
+.midnum {
+    font-family: var(--serif);
+    font-size: clamp(1.35rem, 2.2vw, 1.7rem);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    font-weight: 350;
+}
+
+.midnum.is-neg { color: var(--clay); }
+
+.subnote {
+    margin-top: 0.5rem;
+    font-size: 0.6875rem;
+    color: var(--ink-muted);
+    line-height: 1.55;
+}
+.hstat .label { display: block; margin-bottom: 0.6rem; }
+
+/* --- mobile nav ------------------------------------------------- */
+.navtoggle {
+    display: none;
+    width: 2.1rem;
+    height: 2.1rem;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--hairline);
+    border-radius: 2px;
+    color: var(--pine);
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0;
+}
 
 /* Overdrawn: the whole surface changes state, not one cell. */
 body.is-overdrawn {
@@ -931,32 +988,56 @@ body.is-overdrawn .wtile svg { stroke: var(--pine) !important; }
    Responsive — phone puts the form first
    --------------------------------------------------------------- */
 @media (max-width: 900px) {
-    :root { --gutter: 1.25rem; }
+    :root { --gutter: 1rem; }
 
-    /* Children are, in order: hcell, vr, hcell, vr, hcell.
-       Match on :nth-child — :nth-of-type counts div elements, not classes. */
-    .headline {
-        grid-template-columns: 1fr 1fr;
-        row-gap: 0;
+    .navtoggle { display: flex; }
+
+    .masthead { position: relative; padding: 1.5rem 0 0.9rem 0; }
+
+    .masthead-right {
+        display: none;
+        position: absolute;
+        top: calc(100% + 1px);
+        right: 0;
+        left: 0;
+        z-index: 20;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        background: var(--surface);
+        border: 1px solid var(--hairline);
+        border-radius: 3px;
+        padding: 0.35rem;
     }
 
-    .headline > .vr { display: none; }
+    .masthead-right.is-open { display: flex; }
 
-    .headline > .hcell:nth-child(1) {
-        grid-column: 1 / -1;
-        padding: 1.75rem 0 1.25rem 0;
+    .masthead-right > * {
+        padding: 0.75rem 0.7rem;
+        border-bottom: 1px solid var(--hairline-dim);
+        text-align: left;
     }
 
-    .headline > .hcell:nth-child(3) {
-        padding: 1.25rem 1.25rem 1.75rem 0;
-        border-top: 1px solid var(--hairline-dim);
+    .masthead-right > *:last-child { border-bottom: 0; }
+    .masthead-right .linkbtn { border-bottom: 1px solid var(--hairline-dim); width: 100%; }
+    .masthead-right .linkbtn:last-child { border-bottom: 0; }
+    .masthead-right .monthpick { width: 100%; }
+
+    .hero {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        gap: 1.25rem;
     }
 
-    .headline > .hcell:nth-child(5) {
-        padding: 1.25rem 0 1.75rem 1.25rem;
-        border-top: 1px solid var(--hairline-dim);
-        border-left: 1px solid var(--hairline-dim);
+    .herostats {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.75rem;
+        width: 100%;
     }
+
+    .hstat .label { font-size: 0.5625rem; letter-spacing: 0.06em; }
+
+    .panel-s { padding: 1.1rem 1rem 1.2rem 1rem; }
 
     .split {
         display: flex;
@@ -979,6 +1060,10 @@ body.is-overdrawn .wtile svg { stroke: var(--pine) !important; }
 
     .field.amount input { font-size: 2.75rem; }
     .submit { padding: 1.1rem 1rem; }
+
+    .daycell { flex: 1 1 3rem; min-width: 3rem; }
+    .bignum { font-size: clamp(2rem, 11vw, 2.75rem); }
+    .midnum { font-size: clamp(1.1rem, 5.5vw, 1.5rem); }
 }
 </style>
 </head>
@@ -1217,7 +1302,8 @@ body.is-overdrawn .wtile svg { stroke: var(--pine) !important; }
 
   <header class="masthead">
     <div class="mark">Ledger<em>.</em></div>
-    <div class="masthead-right">
+    <button class="navtoggle" id="navToggle" aria-label="Menu" aria-expanded="false">&#9776;</button>
+    <div class="masthead-right" id="navPanel">
       <select class="monthpick" id="monthPick"><option value="current">This month</option></select>
       <span class="syncdot label" id="syncDot" data-state="ok"><i></i><span id="syncText">synced</span></span>
       <button class="linkbtn" id="openBudget">Budget</button>
@@ -1227,23 +1313,39 @@ body.is-overdrawn .wtile svg { stroke: var(--pine) !important; }
     </div>
   </header>
 
-  <section class="headline">
-    <div class="hcell">
-      <span class="label" id="hlLabel1">&mdash;</span>
-      <div class="bignum num" id="hlAmount">0<span class="cur" id="hlCur">MYR</span></div>
-      <div class="subnote" id="hlNote">&mdash;</div>
+  <section class="hero">
+    <div class="ringwrap">
+      <svg viewBox="0 0 172 172" aria-hidden="true">
+        <circle cx="86" cy="86" r="72" stroke="var(--hairline-dim)" stroke-width="13"></circle>
+        <circle cx="86" cy="86" r="72" stroke="var(--pine)" stroke-width="13" id="ringSpend"
+                stroke-dasharray="0 452.39"></circle>
+        <circle cx="86" cy="86" r="59" stroke="var(--hairline-dim)" stroke-width="3" id="ringOhTrack"></circle>
+        <circle cx="86" cy="86" r="59" stroke="var(--ink-faint)" stroke-width="3" id="ringOh"
+                stroke-dasharray="0 370.71"></circle>
+      </svg>
+      <div class="ringcentre">
+        <span class="label" id="ringLabel">Spent</span>
+        <div class="rbig" id="ringSpent">0.00</div>
+        <div class="rsub" id="ringOf">&mdash;</div>
+      </div>
     </div>
-    <div class="vr"></div>
-    <div class="hcell">
-      <span class="label" id="hlLabel2">Days remaining</span>
-      <div class="midnum num" id="hlDays">&mdash;</div>
-      <div class="subnote" id="hlPace">&mdash;</div>
-    </div>
-    <div class="vr"></div>
-    <div class="hcell">
-      <span class="label" id="hlLabel3">Spent today</span>
-      <div class="midnum num" id="hlToday">&mdash;</div>
-      <div class="subnote" id="hlTodayNote">&mdash;</div>
+
+    <div class="herostats">
+      <div class="hstat">
+        <span class="label" id="hlLabel1">&mdash;</span>
+        <div class="bignum num" id="hlAmount">0<span class="cur" id="hlCur">MYR</span></div>
+        <div class="subnote" id="hlNote">&mdash;</div>
+      </div>
+      <div class="hstat">
+        <span class="label" id="hlLabel2">&mdash;</span>
+        <div class="midnum num" id="hlDays">&mdash;</div>
+        <div class="subnote" id="hlPace">&mdash;</div>
+      </div>
+      <div class="hstat">
+        <span class="label" id="hlLabel3">&mdash;</span>
+        <div class="midnum num" id="hlToday">&mdash;</div>
+        <div class="subnote" id="hlTodayNote">&mdash;</div>
+      </div>
     </div>
   </section>
 
@@ -1255,7 +1357,7 @@ body.is-overdrawn .wtile svg { stroke: var(--pine) !important; }
         <button class="linkbtn" id="backToCurrent">Back to this month</button>
       </div>
 
-      <div id="planSection">
+      <div id="planSection" class="panel-s">
         <div class="sectionhead">
           <h2>The plan</h2>
           <span class="label" id="planRange"></span>
@@ -1264,23 +1366,29 @@ body.is-overdrawn .wtile svg { stroke: var(--pine) !important; }
         <p class="striphint" id="stripHint"></p>
       </div>
 
-      <div class="sectionhead">
-        <h2>Where it went</h2>
-        <span class="label" id="breakdownTotal"></span>
+      <div class="panel-s">
+        <div class="sectionhead">
+          <h2>Where it went</h2>
+          <span class="label" id="breakdownTotal"></span>
+        </div>
+        <div id="breakdownList"></div>
       </div>
-      <div id="breakdownList"></div>
 
-      <div class="sectionhead">
-        <h2>Day by day</h2>
-        <span class="label" id="dayPeak"></span>
+      <div class="panel-s">
+        <div class="sectionhead">
+          <h2>Day by day</h2>
+          <span class="label" id="dayPeak"></span>
+        </div>
+        <div id="dayChart"></div>
       </div>
-      <div id="dayChart"></div>
 
-      <div class="sectionhead">
-        <h2>Accounts</h2>
-        <span class="label">Balance</span>
+      <div class="panel-s">
+        <div class="sectionhead">
+          <h2>Accounts</h2>
+          <span class="label">Balance</span>
+        </div>
+        <div id="walletList"></div>
       </div>
-      <div id="walletList"></div>
 
       <div class="sectionhead">
         <h2>Everything logged</h2>
@@ -2429,6 +2537,88 @@ function renderHeadline() {
                                     + " planned";
 }
 
+const RING_OUTER = 2 * Math.PI * 72;
+const RING_INNER = 2 * Math.PI * 59;
+
+function setArc(elementId, fraction, circumference) {
+    let clamped = fraction;
+
+    if (isNaN(clamped) === true || clamped < 0) {
+        clamped = 0;
+    }
+
+    if (clamped > 1) {
+        clamped = 1;
+    }
+
+    const filled = circumference * clamped;
+    byId(elementId).setAttribute("stroke-dasharray", filled + " " + (circumference - filled));
+}
+
+function renderRing() {
+    const account = findAccount(state.config.period.primaryAccount);
+
+    if (account === null) {
+        return;
+    }
+
+    /* An archived month has no budget to measure against, so the ring shows
+       the month's spend with no arc rather than a meaningless fraction. */
+    if (isArchiveView() === true) {
+        const stats = spendStats(activeRows(), account.id);
+        byId("ringLabel").textContent = "Spent";
+        byId("ringSpent").textContent = formatAmount(stats.total, account.currency);
+        byId("ringSpent").classList.remove("is-neg");
+        byId("ringOf").textContent = monthLabel(state.viewMonth);
+        setArc("ringSpend", 0, RING_OUTER);
+        setArc("ringOh", 0, RING_INNER);
+        return;
+    }
+
+    const budget = activeBudget();
+
+    if (budget === null) {
+        const stats = spendStats(state.rows, account.id);
+        byId("ringLabel").textContent = "Spent";
+        byId("ringSpent").textContent = formatAmount(stats.total, account.currency);
+        byId("ringSpent").classList.remove("is-neg");
+        byId("ringOf").textContent = "no budget set";
+        setArc("ringSpend", 0, RING_OUTER);
+        setArc("ringOh", 0, RING_INNER);
+        return;
+    }
+
+    const status = budgetStatus(budget);
+
+    byId("ringLabel").textContent = "Spent";
+    byId("ringSpent").textContent = formatAmount(status.spent, account.currency);
+    byId("ringOf").textContent = "of " + formatAmount(status.total, account.currency) + " " + account.currency;
+
+    if (status.spent > status.total) {
+        byId("ringSpent").classList.add("is-neg");
+        byId("ringSpend").setAttribute("stroke", "var(--clay)");
+    } else {
+        byId("ringSpent").classList.remove("is-neg");
+        byId("ringSpend").setAttribute("stroke", "var(--pine)");
+    }
+
+    let fraction = 0;
+
+    if (status.total > 0) {
+        fraction = status.spent / status.total;
+    }
+
+    setArc("ringSpend", fraction, RING_OUTER);
+
+    let overheadFraction = 0;
+
+    if (budget.overhead > 0) {
+        overheadFraction = status.overheadSpent / budget.overhead;
+    }
+
+    setArc("ringOh", overheadFraction, RING_INNER);
+}
+
 function setOverdrawnTheme(on) {
     if (document.body === undefined || document.body === null) {
         return;
@@ -2983,6 +3173,7 @@ function renderAll() {
     renderMonthPicker();
     renderViewMode();
     renderHeadline();
+    renderRing();
     renderDayStrip();
     renderBreakdown();
     renderDayChart();
@@ -4704,7 +4895,49 @@ function onTabClick(event) {
     buildForm(type);
 }
 
+function closeNav() {
+    const panel = byId("navPanel");
+    panel.classList.remove("is-open");
+    byId("navToggle").setAttribute("aria-expanded", "false");
+}
+
+function wireNav() {
+    const toggle = byId("navToggle");
+    const panel = byId("navPanel");
+
+    toggle.addEventListener("click", function (event) {
+        event.stopPropagation();
+        const open = panel.classList.contains("is-open");
+
+        if (open === true) {
+            closeNav();
+        } else {
+            panel.classList.add("is-open");
+            toggle.setAttribute("aria-expanded", "true");
+        }
+    });
+
+    /* Tapping anything in the menu, or anywhere outside it, puts it away. */
+    panel.addEventListener("click", function () {
+        closeNav();
+    });
+
+    document.addEventListener("click", function (event) {
+        if (panel.contains !== undefined && panel.contains(event.target) === true) {
+            return;
+        }
+
+        if (event.target === toggle) {
+            return;
+        }
+
+        closeNav();
+    });
+}
+
 function wireEvents() {
+    wireNav();
+
     const tabs = document.querySelectorAll(".tab");
     for (let i = 0; i < tabs.length; i++) {
         tabs[i].addEventListener("click", onTabClick);
