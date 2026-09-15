@@ -310,113 +310,35 @@ body.is-overdrawn .panel-s { border-color: var(--hairline); }
     margin: 0.25rem 0;
 }
 
-/* The three stats share one grid so labels, figures and notes each sit on a
-   common line. Independently stacked blocks are what made this float. */
+/* One line per stat: name, figure, note. Borders live on the stat itself so
+   a media query can switch them off without fighting specificity. */
 .herostats {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    grid-template-rows: auto auto auto;
     column-gap: 1.75rem;
-    row-gap: 0.55rem;
-    align-items: baseline;
+    align-items: end;
 }
 
-.hstat { display: contents; }
+.hstat {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem 0.7rem;
+    min-width: 0;
+}
 
-.herostats > .hstat > .label    { grid-row: 1; margin-bottom: 0; align-self: end; }
-.herostats > .hstat > .bignum,
-.herostats > .hstat > .midnum   { grid-row: 2; }
-.herostats > .hstat > .subnote  { grid-row: 3; margin-top: 0; align-self: start; }
-
-/* Hairlines between the columns instead of empty air. */
-.herostats > .hstat:nth-child(2) > .label,
-.herostats > .hstat:nth-child(2) > .bignum,
-.herostats > .hstat:nth-child(2) > .midnum,
-.herostats > .hstat:nth-child(2) > .subnote,
-.herostats > .hstat:nth-child(3) > .label,
-.herostats > .hstat:nth-child(3) > .bignum,
-.herostats > .hstat:nth-child(3) > .midnum,
-.herostats > .hstat:nth-child(3) > .subnote {
+.hstat + .hstat {
     border-left: 1px solid var(--hairline-dim);
     padding-left: 0.875rem;
     margin-left: -0.875rem;
 }
 
-.ringwrap { position: relative; width: 172px; height: 172px; }
-.ringwrap svg { width: 172px; height: 172px; transform: rotate(-90deg); }
-.ringwrap circle { fill: none; stroke-linecap: round; }
-.ringwrap { filter: drop-shadow(0 1px 0 rgba(0,0,0,0.02)); }
+.hstat > .label   { flex: 0 0 auto; margin-bottom: 0; }
+.hstat > .subnote { flex: 1 1 7rem; margin-top: 0; min-width: 0; }
 
-.ringcentre {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.1rem;
-}
-
-.ringcentre .label { font-size: 0.5625rem; }
-
-.ringcentre .rbig {
-    font-family: var(--serif);
-    font-size: 1.75rem;
-    letter-spacing: -0.02em;
-    line-height: 1;
-    font-variant-numeric: tabular-nums;
-}
-
-.ringcentre .rsub { font-size: 0.625rem; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
-.ringcentre .rbig.is-neg { color: var(--clay); }
-
-.herostats {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1.5rem;
-}
-
-.hstat { min-width: 0; }
-
-.bignum {
-    font-family: var(--serif);
-    font-size: clamp(2rem, 4.4vw, 2.9rem);
-    line-height: 0.95;
-    letter-spacing: -0.03em;
-    font-weight: 350;
-    display: flex;
-    align-items: baseline;
-    gap: 0.35rem;
-}
-
-.bignum .cur {
-    font-family: var(--mono);
-    font-size: 0.75rem;
-    font-weight: 500;
-    letter-spacing: 0.05em;
-    color: var(--ink-muted);
-    transform: translateY(-0.6em);
-}
-
-.bignum.is-neg { color: var(--clay); }
-
-.midnum {
-    font-family: var(--serif);
-    font-size: clamp(1.35rem, 2.2vw, 1.7rem);
-    line-height: 1;
-    letter-spacing: -0.02em;
-    font-weight: 350;
-}
-
-.midnum.is-neg { color: var(--clay); }
-
-.subnote {
-    margin-top: 0.5rem;
-    font-size: 0.6875rem;
-    color: var(--ink-muted);
-    line-height: 1.55;
-}
-.hstat .label { display: block; margin-bottom: 0.6rem; }
+.hero .bignum { font-size: clamp(1.6rem, 2.3vw, 2.05rem); }
+.hero .midnum { font-size: clamp(1.45rem, 2vw, 1.8rem); }
+.hero .bignum .cur { font-size: 0.6875rem; transform: translateY(-0.4em); }
 
 /* --- mobile nav ------------------------------------------------- */
 .navtoggle {
@@ -1088,60 +1010,34 @@ body.is-overdrawn .wtile svg { stroke: var(--pine) !important; }
     .hero > .vr { display: none; }
 
     /* Three narrow columns chop every label in half on a phone. One row per
-       stat: name on the left, figure on the right, note underneath. */
+       stat, bottom-anchored, separated by the horizontal rules only. */
     .herostats {
         display: block;
         width: 100%;
     }
 
     .hstat {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: baseline;
+        align-items: flex-end;
         justify-content: space-between;
-        gap: 0.5rem 1rem;
-        padding: 0.8rem 0;
+        gap: 0.35rem 1rem;
+        padding: 0.85rem 0;
         border-top: 1px solid var(--hairline-dim);
+    }
+
+    .hstat + .hstat {
+        border-left: 0;
+        padding-left: 0;
+        margin-left: 0;
     }
 
     .hstat:last-child { padding-bottom: 0; }
 
-    .herostats > .hstat > .label,
-    .herostats > .hstat > .bignum,
-    .herostats > .hstat > .midnum,
-    .herostats > .hstat > .subnote {
-        border-left: 0;
-        padding-left: 0;
-        margin-left: 0;
-        grid-row: auto;
-    }
+    .hstat > .label   { flex: 1 1 auto; font-size: 0.625rem; }
+    .hstat > .subnote { flex: 1 0 100%; }
 
-    .hstat > .label { flex: 1 1 auto; font-size: 0.625rem; }
-    .hstat > .bignum,
-    .hstat > .midnum { flex: 0 0 auto; font-size: 1.5rem; }
-    .hstat > .bignum .cur { font-size: 0.625rem; transform: translateY(-0.5em); }
-    .hstat > .subnote { flex: 1 0 100%; margin-top: 0; }
-
-    .panel-s { padding: 1.1rem 1rem 1.2rem 1rem; }
-
-    .split {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .split > .vr { display: none; }
-
-    .col-form {
-        order: 1;
-        position: static;
-        padding: 0 0 2.5rem 0;
-    }
-
-    .col-data {
-        order: 2;
-        padding: 0 0 4rem 0;
-        border-top: 1px solid var(--hairline);
-    }
+    .hero .bignum,
+    .hero .midnum { flex: 0 0 auto; font-size: 1.5rem; line-height: 1; }
+    .hero .bignum .cur { font-size: 0.625rem; transform: translateY(-0.45em); }
 
     .field.amount input { font-size: 2.75rem; }
     .submit { padding: 1.1rem 1rem; }
