@@ -16,19 +16,23 @@
    Design tokens
    --------------------------------------------------------------- */
 :root {
-    --paper:        #F1F2EC;
-    --paper-sunk:   #E8E9E1;
-    --surface:      #FBFBF7;
+    --paper:        #F2EFE7;
+    --paper-sunk:   #E9E5DA;
+    --surface:      #FCFBF6;
     --ink:          #111812;
     --ink-muted:    #556056;
     --ink-faint:    #8B948B;
-    --pine:         #1E4D2B;
-    --pine-deep:    #14351D;
-    --mint:         #EBF3EA;
-    --hairline:     #D0E2CE;
-    --hairline-dim: #DFE0D9;
-    --clay:         #8A3324;
-    --clay-tint:    #F5E9E6;
+    --pine:         #245A33;
+    --pine-deep:    #173A21;
+    --mint:         #E6F0E5;
+    --hairline:     #CBDFC8;
+    --hairline-dim: #DED9CC;
+    --clay:         #9A3B26;
+    --clay-tint:    #F6E7E1;
+
+    --r-lg: 14px;
+    --r-md: 9px;
+    --r-sm: 5px;
 
     --serif: "Newsreader", Georgia, serif;
     --mono:  "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -229,7 +233,7 @@ button, input, select {
     justify-content: center;
     border: 1px solid var(--tile-line);
     background: var(--tile-fill);
-    border-radius: 2px;
+    border-radius: var(--r-md);
     flex: none;
 }
 
@@ -258,15 +262,18 @@ button, input, select {
 
 .wbar {
     grid-column: 2 / -1;
-    height: 2px;
-    background: var(--hairline-dim);
+    height: 5px;
+    background: var(--paper-sunk);
+    border-radius: 999px;
     position: relative;
-    margin-top: 0.4rem;
+    margin-top: 0.45rem;
+    overflow: hidden;
 }
 
 .wbar span {
     position: absolute;
     inset: 0 auto 0 0;
+    border-radius: 999px;
     background: var(--tile-ink);
 }
 
@@ -278,7 +285,7 @@ button, input, select {
 .panel-s {
     background: var(--surface);
     border: 1px solid var(--hairline-dim);
-    border-radius: 3px;
+    border-radius: var(--r-lg);
     padding: 1.4rem 1.5rem 1.5rem 1.5rem;
     margin-top: 1.25rem;
 }
@@ -291,14 +298,16 @@ body.is-overdrawn .panel-s { border-color: var(--hairline); }
 .hero {
     display: grid;
     grid-template-columns: 172px minmax(0, 1fr);
-    gap: 2rem;
+    gap: 2.25rem;
     align-items: center;
-    margin-top: 1.5rem;
 }
+
+.hero.panel-s { padding: 1.9rem 2rem; margin-top: 1.5rem; }
 
 .ringwrap { position: relative; width: 172px; height: 172px; }
 .ringwrap svg { width: 172px; height: 172px; transform: rotate(-90deg); }
-.ringwrap circle { fill: none; stroke-linecap: butt; }
+.ringwrap circle { fill: none; stroke-linecap: round; }
+.ringwrap { filter: drop-shadow(0 1px 0 rgba(0,0,0,0.02)); }
 
 .ringcentre {
     position: absolute;
@@ -374,13 +383,13 @@ body.is-overdrawn .panel-s { border-color: var(--hairline); }
 /* --- mobile nav ------------------------------------------------- */
 .navtoggle {
     display: none;
-    width: 2.1rem;
-    height: 2.1rem;
+    width: 2.3rem;
+    height: 2.3rem;
     align-items: center;
     justify-content: center;
-    background: transparent;
+    background: var(--surface);
     border: 1px solid var(--hairline);
-    border-radius: 2px;
+    border-radius: var(--r-md);
     color: var(--pine);
     cursor: pointer;
     font-size: 1rem;
@@ -422,7 +431,7 @@ body.is-overdrawn .wtile svg { stroke: var(--pine) !important; }
     flex: 1 1 3.4rem;
     min-width: 3.4rem;
     border: 1px solid var(--hairline-dim);
-    border-radius: 2px;
+    border-radius: var(--r-md);
     padding: 0.4rem 0.35rem 0.45rem 0.35rem;
     background: transparent;
     cursor: pointer;
@@ -487,7 +496,7 @@ body.is-overdrawn .wtile svg { stroke: var(--pine) !important; }
     margin-top: 2rem;
     padding: 1.1rem 1.2rem;
     border: 1px solid var(--hairline);
-    border-radius: 2px;
+    border-radius: var(--r-md);
     background: var(--mint);
 }
 
@@ -535,13 +544,14 @@ body.is-overdrawn .wtile svg { stroke: var(--pine) !important; }
 .acctrow .abal.is-neg { color: var(--clay); }
 
 .monthpick {
-    background: transparent;
-    border: 0;
-    border-bottom: 1px solid var(--hairline);
-    border-radius: 0;
+    background: var(--mint);
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
     -webkit-appearance: none;
     appearance: none;
-    padding: 0 0.9rem 0.15rem 0;
+    padding: 0.35rem 1.5rem 0.35rem 0.75rem;
+    min-width: 8.5rem;
+    text-overflow: ellipsis;
     font-size: 0.6875rem;
     letter-spacing: 0.09em;
     text-transform: uppercase;
@@ -549,7 +559,7 @@ body.is-overdrawn .wtile svg { stroke: var(--pine) !important; }
     cursor: pointer;
     background-image: linear-gradient(45deg, transparent 50%, var(--pine) 50%),
                       linear-gradient(135deg, var(--pine) 50%, transparent 50%);
-    background-position: right 4px center, right 0 center;
+    background-position: calc(100% - 0.75rem) center, calc(100% - 0.5rem) center;
     background-size: 4px 4px, 4px 4px;
     background-repeat: no-repeat;
 }
@@ -560,9 +570,10 @@ body.is-overdrawn .wtile svg { stroke: var(--pine) !important; }
     justify-content: space-between;
     gap: 1rem;
     margin-top: 2rem;
-    padding: 0.7rem 0.9rem;
+    padding: 0.8rem 1.1rem;
     background: var(--mint);
-    border-left: 2px solid var(--pine);
+    border-radius: var(--r-md);
+    border-left: 3px solid var(--pine);
     font-size: 0.75rem;
     color: var(--pine);
 }
@@ -585,15 +596,18 @@ body.is-overdrawn .wtile svg { stroke: var(--pine) !important; }
 
 .brow .bbar {
     grid-column: 1 / -1;
-    height: 3px;
-    background: var(--hairline-dim);
-    margin-top: 0.45rem;
+    height: 7px;
+    background: var(--paper-sunk);
+    border-radius: 999px;
+    margin-top: 0.5rem;
     position: relative;
+    overflow: hidden;
 }
 
 .brow .bbar span {
     position: absolute;
     inset: 0 auto 0 0;
+    border-radius: 999px;
     background: var(--tile-ink);
 }
 
@@ -619,11 +633,14 @@ body.is-overdrawn .wtile svg { stroke: var(--pine) !important; }
 .daybar > span {
     width: 100%;
     background: var(--pine);
-    opacity: 0.82;
-    min-height: 1px;
+    border-radius: var(--r-sm) var(--r-sm) 0 0;
+    opacity: 0.75;
+    min-height: 2px;
 }
 
-.daybar.is-peak > span { background: var(--clay); opacity: 1; }
+/* Clay means over-budget everywhere else in this app, so the biggest day
+   gets emphasis by depth instead of by alarm colour. */
+.daybar.is-peak > span { background: var(--pine-deep); opacity: 1; }
 .daybar:hover > span   { opacity: 1; }
 
 .dayaxis {
@@ -659,7 +676,7 @@ body.is-overdrawn .wtile svg { stroke: var(--pine) !important; }
     width: 100%;
     background: var(--mint);
     border: 1px solid var(--hairline);
-    border-radius: 2px;
+    border-radius: var(--r-sm);
     padding: 0.3rem 0.4rem;
     font-size: 0.8125rem;
     text-align: right;
@@ -684,7 +701,7 @@ body.is-overdrawn .wtile svg { stroke: var(--pine) !important; }
 .swatch {
     width: 1.5rem;
     height: 1.5rem;
-    border-radius: 2px;
+    border-radius: 999px;
     border: 1px solid transparent;
     cursor: pointer;
     padding: 0;
@@ -865,11 +882,11 @@ body.is-overdrawn .wtile svg { stroke: var(--pine) !important; }
 .submit {
     width: 100%;
     margin-top: 1.5rem;
-    padding: 0.95rem 1rem;
+    padding: 1rem 1rem;
     background: var(--pine);
     color: #FFFFFF;
     border: 0;
-    border-radius: 2px;
+    border-radius: var(--r-md);
     cursor: pointer;
     font-size: 0.75rem;
     font-weight: 600;
@@ -907,14 +924,14 @@ body.is-overdrawn .wtile svg { stroke: var(--pine) !important; }
     position: fixed;
     top: 1.1rem;
     right: 1.4rem;
-    width: 2.25rem;
-    height: 2.25rem;
+    width: 2.4rem;
+    height: 2.4rem;
     display: flex;
     align-items: center;
     justify-content: center;
     background: var(--paper);
     border: 1px solid var(--hairline);
-    border-radius: 2px;
+    border-radius: 999px;
     color: var(--ink-muted);
     font-size: 0.875rem;
     line-height: 1;
@@ -965,7 +982,7 @@ body.is-overdrawn .wtile svg { stroke: var(--pine) !important; }
     background: var(--mint);
     color: var(--pine);
     border: 1px solid var(--hairline);
-    border-radius: 2px;
+    border-radius: 999px;
     padding: 0.25rem 0.5rem;
     font-size: 0.6875rem;
     display: inline-flex;
@@ -1006,8 +1023,9 @@ body.is-overdrawn .wtile svg { stroke: var(--pine) !important; }
         gap: 0;
         background: var(--surface);
         border: 1px solid var(--hairline);
-        border-radius: 3px;
-        padding: 0.35rem;
+        border-radius: var(--r-lg);
+        padding: 0.4rem;
+        box-shadow: 0 8px 24px rgba(23, 58, 33, 0.10);
     }
 
     .masthead-right.is-open { display: flex; }
@@ -1313,13 +1331,13 @@ body.is-overdrawn .wtile svg { stroke: var(--pine) !important; }
     </div>
   </header>
 
-  <section class="hero">
+  <section class="hero panel-s">
     <div class="ringwrap">
       <svg viewBox="0 0 172 172" aria-hidden="true">
-        <circle cx="86" cy="86" r="72" stroke="var(--hairline-dim)" stroke-width="13"></circle>
+        <circle cx="86" cy="86" r="72" stroke="var(--paper-sunk)" stroke-width="13"></circle>
         <circle cx="86" cy="86" r="72" stroke="var(--pine)" stroke-width="13" id="ringSpend"
                 stroke-dasharray="0 452.39"></circle>
-        <circle cx="86" cy="86" r="59" stroke="var(--hairline-dim)" stroke-width="3" id="ringOhTrack"></circle>
+        <circle cx="86" cy="86" r="59" stroke="var(--paper-sunk)" stroke-width="3" id="ringOhTrack"></circle>
         <circle cx="86" cy="86" r="59" stroke="var(--ink-faint)" stroke-width="3" id="ringOh"
                 stroke-dasharray="0 370.71"></circle>
       </svg>
@@ -2156,15 +2174,15 @@ function walletsOfAccount(accountId) {
    =============================================================== */
 
 const WALLET_COLOURS = [
-    { ink: "#2D5A27", fill: "#E6F0E4", line: "#C4DCC1" },
-    { ink: "#A2543A", fill: "#F6E8E2", line: "#E3CBC0" },
-    { ink: "#3F5E75", fill: "#E4EBF1", line: "#C6D5E0" },
-    { ink: "#9A6A1E", fill: "#F5EDDD", line: "#E2D2B4" },
-    { ink: "#6B4A6E", fill: "#EFE8F0", line: "#D9C9DB" },
-    { ink: "#2F6560", fill: "#E2EEEC", line: "#BFD7D3" },
-    { ink: "#6B7040", fill: "#EDEFE2", line: "#D3D7BC" },
-    { ink: "#3A4470", fill: "#E5E7F0", line: "#C6CADE" },
-    { ink: "#8A3324", fill: "#F5E4E1", line: "#E0C2BC" }
+    { ink: "#2F6138", fill: "#E6F0E6", line: "#C6DDC8" },
+    { ink: "#AE5B37", fill: "#F9E9E0", line: "#EBCBB9" },
+    { ink: "#45606E", fill: "#E6EDF0", line: "#C4D3DA" },
+    { ink: "#A0741B", fill: "#F7EEDA", line: "#E6D4AB" },
+    { ink: "#74497A", fill: "#F1E9F2", line: "#DCC8DE" },
+    { ink: "#1F6B63", fill: "#E0EFEC", line: "#BBD9D3" },
+    { ink: "#6E7733", fill: "#F0F2DF", line: "#D8DDB5" },
+    { ink: "#3B4A7D", fill: "#E7E9F3", line: "#C6CBE1" },
+    { ink: "#97402B", fill: "#F7E6E0", line: "#E6C5B9" }
 ];
 
 const ICON_PATHS = {
@@ -2552,7 +2570,16 @@ function setArc(elementId, fraction, circumference) {
     }
 
     const filled = circumference * clamped;
-    byId(elementId).setAttribute("stroke-dasharray", filled + " " + (circumference - filled));
+    const element = byId(elementId);
+
+    element.setAttribute("stroke-dasharray", filled + " " + (circumference - filled));
+
+    /* A zero-length dash still paints a dot under a round linecap. */
+    if (clamped === 0) {
+        element.setAttribute("stroke-opacity", "0");
+    } else {
+        element.setAttribute("stroke-opacity", "1");
+    }
 }
 
 function renderRing() {
