@@ -1577,6 +1577,10 @@ function decimalsFor(currency) {
     if (currency === "JPY") { return 0; }
     if (currency === "VND") { return 0; }
     if (currency === "KRW") { return 0; }
+
+    /* Gold is held in grams, where the fourth place is real money. */
+    if (currency === "g") { return 4; }
+
     return 2;
 }
 
